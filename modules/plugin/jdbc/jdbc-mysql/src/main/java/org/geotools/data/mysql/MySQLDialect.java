@@ -462,6 +462,11 @@ public class MySQLDialect extends SQLDialect {
     }
     
     @Override
+    public boolean isAggregatedSortSupported(String function) {
+       return "distinct".equalsIgnoreCase(function);
+    }
+    
+    @Override
     public void applyLimitOffset(StringBuffer sql, int limit, int offset) {
         if(limit >= 0 && limit < Integer.MAX_VALUE) {
             if(offset > 0)

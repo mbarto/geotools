@@ -1195,11 +1195,11 @@ public class OracleDialect extends PreparedStatementSQLDialect {
         // to understand why we are going thru such hoops in order to get it working
         // The same techinique is used in Hibernate to support pagination
         
-        if(offset == 0) {
+        if(offset == 0 && limit >= 0) {
             // top-n query: select * from (your_query) where rownum <= n;
             sql.insert(0, "SELECT * FROM (");
             sql.append(") WHERE ROWNUM <= " + limit);
-        } else {
+        } else if(limit >= 0 && offset > 0){
             // find results between N and M
             // select * from 
             // ( select rownum rnum, a.*
@@ -1210,6 +1210,9 @@ public class OracleDialect extends PreparedStatementSQLDialect {
             sql.insert(0, "SELECT * FROM (SELECT A.*, ROWNUM RNUM FROM ( ");
             sql.append(") A WHERE ROWNUM <= " + max + ")");
             sql.append("WHERE RNUM > " + offset);
+        } else if(offset > 0) {
+            sql.insert(0, "SELECT * FROM (");
+            sql.append(") WHERE ROWNUM > " + offset);
         }
     }
     

@@ -386,6 +386,15 @@ public class VisitorCalculationTest extends DataTestCase {
         assertNull(value1);
     }
     
+    public void testUniqueWithNegativeMaxFeatures() throws IllegalFilterException, IOException {
+        UniqueVisitor uniqueVisitor = new UniqueVisitor(0, ft);
+        uniqueVisitor.setMaxFeatures(-1);
+        assertFalse(uniqueVisitor.hasLimits());
+        fc.accepts(uniqueVisitor, null);
+        Set value1 = uniqueVisitor.getResult().toSet();
+        assertEquals(3, value1.size()); //3 items in the set
+    }
+    
     public void testUnique() throws IllegalFilterException, IOException {
         UniqueVisitor uniqueVisitor = new UniqueVisitor(0, ft);
         fc.accepts(uniqueVisitor, null);

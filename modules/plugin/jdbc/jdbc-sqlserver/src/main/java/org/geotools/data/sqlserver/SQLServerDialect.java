@@ -673,10 +673,17 @@ public class SQLServerDialect extends BasicSQLDialect {
     }
     
     @Override
+    public boolean isAggregatedSortSupported(String function) {
+       return "distinct".equalsIgnoreCase(function);
+    }
+    
+    @Override
     public void applyLimitOffset(StringBuffer sql, int limit, int offset) {
         if(offset == 0) {
-            int idx = getAfterSelectInsertPoint(sql.toString());
-            sql.insert(idx, " top "  + limit);
+            if(limit >= 0) {
+                int idx = getAfterSelectInsertPoint(sql.toString());
+                sql.insert(idx, " top "  + limit);
+            }
         } else {
             // if we have a nested query (used in sql views) we might have a inner order by,
             // check for the last closed )

@@ -1028,7 +1028,7 @@ public class TeradataDialect extends PreparedStatementSQLDialect {
     
     @Override
     public void applyLimitOffset(StringBuffer sql, int limit, int offset) {
-        if (offset == 0) {
+        if (offset == 0 && limit >= 0) {
             //use TOP N 
             int i = sql.indexOf("SELECT");
             sql.insert(i+6, " TOP " + limit);
@@ -1058,10 +1058,13 @@ public class TeradataDialect extends PreparedStatementSQLDialect {
             if (orderBy != null) {
                 sql.append(orderBy).append(" ");
             }
-            
-            long max = (limit == Integer.MAX_VALUE ? Long.MAX_VALUE : limit + offset);
-            sql.append("QUALIFY row_num > ").append(offset).append(" AND row_num <= ")
-               .append(max);
+            if(limit >= 0) {
+                long max = (limit == Integer.MAX_VALUE ? Long.MAX_VALUE : limit + offset);
+                sql.append("QUALIFY row_num > ").append(offset).append(" AND row_num <= ")
+                   .append(max);
+            } else {
+                sql.append("QUALIFY row_num > ").append(offset);
+            }
         }
     }
     

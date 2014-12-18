@@ -124,7 +124,11 @@ public class UniqueVisitor implements FeatureCalc, FeatureAttributeVisitor, Limi
         Object value = expr.evaluate(feature);
         if (value != null) {
             if(!set.contains(value) && !skipped.contains(value)) {
-                if(currentItem >= startIndex && currentItem < (startIndex + maxFeatures)) {
+                int max = maxFeatures;
+                if(max < 0) {
+                    max = Integer.MAX_VALUE;
+                }
+                if(currentItem >= startIndex && currentItem < (startIndex + max)) {
                     set.add(value);
                 } else {
                     skipped.add(value);
@@ -238,7 +242,7 @@ public class UniqueVisitor implements FeatureCalc, FeatureAttributeVisitor, Limi
 
     @Override
     public boolean hasLimits() {
-        return startIndex > 0 || maxFeatures < Integer.MAX_VALUE;
+        return startIndex > 0 || (maxFeatures >= 0 && maxFeatures < Integer.MAX_VALUE);
     }
 }
 
