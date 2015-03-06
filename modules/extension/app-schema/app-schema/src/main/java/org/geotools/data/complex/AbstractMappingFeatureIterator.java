@@ -18,11 +18,14 @@ package org.geotools.data.complex;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import net.opengis.wfs20.ResolveValueType;
@@ -31,29 +34,34 @@ import org.geotools.data.DataSourceException;
 import org.geotools.data.Query;
 import org.geotools.data.complex.filter.XPath;
 import org.geotools.data.complex.filter.XPathUtil.StepList;
+import org.geotools.data.joining.JoiningQuery;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.Hints;
 import org.geotools.feature.AppSchemaFeatureFactoryImpl;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.Types;
 import org.geotools.feature.type.ComplexFeatureTypeFactoryImpl;
+import org.geotools.filter.FilterAttributeExtractor;
 import org.geotools.filter.FilterFactoryImplNamespaceAware;
+import org.geotools.filter.SortByImpl;
 import org.geotools.filter.identity.FeatureIdImpl;
 import org.geotools.xlink.XLINK;
 import org.opengis.feature.Attribute;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureFactory;
+import org.opengis.feature.GeometryAttribute;
+import org.opengis.feature.Property;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.FeatureTypeFactory;
-import org.opengis.feature.type.PropertyDescriptor;
-import org.opengis.feature.GeometryAttribute;
-import org.opengis.feature.Property;
 import org.opengis.feature.type.Name;
+import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.PropertyName;
+import org.opengis.filter.sort.SortBy;
+import org.opengis.filter.sort.SortOrder;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.NamespaceSupport;
@@ -224,6 +232,28 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
         } else {
             setPropertyNames(null); // we need the actual property names (not surrogates) to do
                                     // this...
+        }
+        if(unrolledQuery instanceof JoiningQuery) {
+            FilterAttributeExtractor extractor = new FilterAttributeExtractor();
+            Set<String> nestedSortAttributes = new HashSet<String>();
+            for(NestedAttributeMapping nestedMapping : mapping.getNestedMappings()) {
+                
+                nestedMapping.getSourceExpression().accept(extractor, null);
+                for (String pn : extractor.getAttributeNameSet()) {
+                    nestedSortAttributes.add(pn);
+                }   
+                
+            }
+            if(!nestedSortAttributes.isEmpty()) {
+                SortBy[] unrolledSortBy = unrolledQuery.getSortBy();
+                SortBy[] sort = Arrays.copyOf(unrolledSortBy, unrolledSortBy.length + nestedSortAttributes.size());
+                int count = unrolledSortBy.length;
+                for(String attributeName : nestedSortAttributes) {
+                    sort[count] = new SortByImpl(filterFac.property(attributeName), SortOrder.ASCENDING);
+                    count++;
+                }
+                unrolledQuery.setSortBy(sort);
+            }
         }
         xpathAttributeBuilder = new XPath();
         xpathAttributeBuilder.setFeatureFactory(attf);
