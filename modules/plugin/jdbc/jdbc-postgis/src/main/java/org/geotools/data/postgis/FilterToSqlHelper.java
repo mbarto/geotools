@@ -263,8 +263,13 @@ class FilterToSqlHelper {
         
         // add && filter if possible
         if(!(filter instanceof Disjoint)) {
-            
-            property.accept(delegate, extraData);
+            if(filter instanceof BBOX) {
+            	out.write("ST_Envelope(");
+            	property.accept(delegate, extraData);
+            	out.write(")");
+            } else { 
+            	property.accept(delegate, extraData);
+        	}
             out.write(" && ");
             geometry.accept(delegate, extraData);
     
