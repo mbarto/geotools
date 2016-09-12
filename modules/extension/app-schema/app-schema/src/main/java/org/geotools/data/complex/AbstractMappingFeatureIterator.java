@@ -356,9 +356,11 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
         Feature next;
         try {
             next = computeNext();
-        } catch (IOException e) {
+        } catch (Throwable e) {
             close();
-            throw new RuntimeException(e);
+            return null;
+            // HACK: avoid connection leaks
+            //throw new RuntimeException(e);
         }
         ++featureCounter;        
         

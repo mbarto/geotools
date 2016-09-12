@@ -401,7 +401,11 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
                     && featureIterator.checkForeignIdValues(idValues)
                     && featureIterator.peekNextValue(nestedSourceExpression).toString()
                             .equals(foreignKeyValue.toString())) {
-                matchingFeatures.add(featureIterator.next());
+            	try {
+            		matchingFeatures.add(featureIterator.next());
+            	} catch(Throwable t) {
+            		// HACK: avoid connection leaks
+            	}
             }
         }
 
