@@ -29,6 +29,7 @@ import net.opengis.wfs20.ResolveValueType;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
+import org.geotools.data.Transaction;
 import org.geotools.data.complex.config.Types;
 import org.geotools.data.complex.filter.XPathUtil.StepList;
 import org.geotools.factory.Hints;
@@ -166,7 +167,7 @@ public class NestedAttributeMapping extends AttributeMapping {
      */
     public List<Feature> getInputFeatures(Object caller, Object foreignKeyValue,
             List<Object> idValues, Object feature, CoordinateReferenceSystem reprojection,
-            List<PropertyName> selectedProperties, boolean includeMandatory) throws IOException {
+            List<PropertyName> selectedProperties, boolean includeMandatory, Transaction transaction) throws IOException {
         if (isSameSource()) {
             // if linkField is null, this method shouldn't be called because the mapping
             // should use the same table, and handles it differently
@@ -204,7 +205,7 @@ public class NestedAttributeMapping extends AttributeMapping {
             isMultiple = mapping.isMultiValued();
         }    
                 
-        return getFilteredFeatures(foreignKeyValue, isMultiple);        
+        return getFilteredFeatures(foreignKeyValue, isMultiple, transaction);        
     }
     
     public AttributeMapping getMapping(FeatureTypeMapping featureTypeMapping) {
@@ -239,7 +240,7 @@ public class NestedAttributeMapping extends AttributeMapping {
      * @return list of built features
      * @throws IOException
      */
-    private List<Feature> getFilteredFeatures(Object foreignKeyValue, boolean isMultiple) throws IOException {   
+    private List<Feature> getFilteredFeatures(Object foreignKeyValue, boolean isMultiple, Transaction transaction) throws IOException {   
     	if (nestedSourceExpression == null) {
             return Collections.EMPTY_LIST;
         }
@@ -315,7 +316,7 @@ public class NestedAttributeMapping extends AttributeMapping {
      * @throws IOException
      * @throws IOException
      */
-    public List<Feature> getInputFeatures(Object foreignKeyValue, FeatureTypeMapping fMapping)
+    public List<Feature> getInputFeatures(Object foreignKeyValue, FeatureTypeMapping fMapping, Transaction transaction)
             throws IOException {
         if (isSameSource()) {
             // if linkField is null, this method shouldn't be called because the mapping
@@ -347,7 +348,7 @@ public class NestedAttributeMapping extends AttributeMapping {
             return null;
         }
 
-        return getFilteredFeatures(foreignKeyValue, isMultiple);     
+        return getFilteredFeatures(foreignKeyValue, isMultiple, transaction);     
     }
     
     /**
@@ -360,8 +361,8 @@ public class NestedAttributeMapping extends AttributeMapping {
      * @throws IOException
      */
     public List<Feature> getFeatures(Object foreignKeyValue,
-            CoordinateReferenceSystem reprojection, Feature feature, int resolveDepth, Integer resolveTimeOut) throws IOException{
-        return getFeatures(null, foreignKeyValue, null, reprojection, feature, null, true, resolveDepth, resolveTimeOut);
+            CoordinateReferenceSystem reprojection, Feature feature, int resolveDepth, Integer resolveTimeOut, Transaction transaction) throws IOException{
+        return getFeatures(null, foreignKeyValue, null, reprojection, feature, null, true, resolveDepth, resolveTimeOut, transaction);
     }
             
 
@@ -376,7 +377,8 @@ public class NestedAttributeMapping extends AttributeMapping {
      * @throws IOException
      */
     public List<Feature> getFeatures(Object source, Object foreignKeyValue,  List<Object> idValues, 
-            CoordinateReferenceSystem reprojection, Object feature, List<PropertyName> selectedProperties, boolean includeMandatory, int resolveDepth, Integer resolveTimeOut) throws IOException {
+            CoordinateReferenceSystem reprojection, Object feature, List<PropertyName> selectedProperties, boolean includeMandatory, int resolveDepth, Integer resolveTimeOut,
+            Transaction transaction) throws IOException {
 
     	if (foreignKeyValue == null) {    		
     		return Collections.<Feature>emptyList();

@@ -22,7 +22,9 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.geotools.data.DataUtilities;
+import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Query;
+import org.geotools.data.Transaction;
 import org.geotools.data.crs.ReprojectFeatureResults;
 import org.geotools.feature.CollectionListener;
 import org.geotools.feature.FeatureCollection;
@@ -60,7 +62,17 @@ public class MappingFeatureCollection implements FeatureCollection<FeatureType, 
     private final Query query;
     
     private Filter unrolledFilter = null;
+    
+    Transaction transaction;
 
+    public MappingFeatureCollection(AppSchemaDataAccess store, FeatureTypeMapping mapping,
+            Query query, Transaction transaction) {
+        this.store = store;
+        this.mapping = mapping;
+        this.query = query;
+        this.transaction = transaction;
+    }
+    
     public MappingFeatureCollection(AppSchemaDataAccess store, FeatureTypeMapping mapping,
             Query query) {
         this.store = store;
@@ -170,7 +182,7 @@ public class MappingFeatureCollection implements FeatureCollection<FeatureType, 
      */
     public FeatureIterator<Feature> features() {
         try {
-            return MappingFeatureIteratorFactory.getInstance(store, mapping, query, unrolledFilter);
+            return MappingFeatureIteratorFactory.getInstance(store, mapping, query, unrolledFilter, transaction);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -244,7 +256,7 @@ public class MappingFeatureCollection implements FeatureCollection<FeatureType, 
      */
     public Iterator<Feature> iterator() {
         try {
-            return MappingFeatureIteratorFactory.getInstance(store, mapping, query, unrolledFilter);
+            return MappingFeatureIteratorFactory.getInstance(store, mapping, query, unrolledFilter, transaction);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -351,5 +363,20 @@ public class MappingFeatureCollection implements FeatureCollection<FeatureType, 
     public Query getQuery() {
         return this.query;
     }
+
+    /*
+	@Override
+	protected void finalize() throws Throwable {
+		if(this.transaction != null) {
+			try {
+				this.transaction.close();
+			} catch(Throwable t) {
+				
+			}
+		}
+		super.finalize();
+	}*/
+    
+    
 
 }

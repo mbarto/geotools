@@ -26,12 +26,14 @@ import net.opengis.wfs20.ResolveValueType;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
+import org.geotools.data.Transaction;
 import org.geotools.data.complex.AppSchemaDataAccessRegistry;
 import org.geotools.data.complex.AttributeMapping;
 import org.geotools.data.complex.DataAccessMappingFeatureIterator;
 import org.geotools.data.complex.DataAccessRegistry;
 import org.geotools.data.complex.FeatureTypeMapping;
 import org.geotools.data.complex.MappingFeatureCollection;
+import org.geotools.data.complex.MappingFeatureSource;
 import org.geotools.data.complex.NestedAttributeMapping;
 import org.geotools.data.complex.filter.XPathUtil.StepList;
 import org.geotools.factory.Hints;
@@ -127,7 +129,8 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
      */
     public DataAccessMappingFeatureIterator initSourceFeatures(Instance instance,
             Name featureTypeName, CoordinateReferenceSystem reprojection,
-            List<PropertyName> selectedProperties, boolean includeMandatory, int resolveDepth, Integer resolveTimeOut) throws IOException {
+            List<PropertyName> selectedProperties, boolean includeMandatory, int resolveDepth, Integer resolveTimeOut,
+            Transaction transaction) throws IOException {
         JoiningQuery query = new JoiningQuery();
         query.setCoordinateSystemReproject(reprojection);
         
@@ -193,7 +196,12 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
             throw new IOException("Internal error: Source could not be found");
         }
 
-        FeatureCollection collection = fSource.getFeatures(query);
+        FeatureCollection collection;
+        if(fSource instanceof MappingFeatureSource) {
+        	collection = ((MappingFeatureSource)fSource).getFeatures(query, transaction);
+        } else {
+        	collection = fSource.getFeatures(query);
+        }
 
         if (!(collection instanceof MappingFeatureCollection)) {
             throw new IOException("Internal error: Mapping feature Collection expected but found "
@@ -213,6 +221,7 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
         }
 
         DataAccessMappingFeatureIterator daFeatureIterator = (DataAccessMappingFeatureIterator) featureIterator;
+        daFeatureIterator.setTransaction(transaction, false);
 
         List<Expression> foreignIds = new ArrayList<Expression>();
         for (int i = 0; i < query.getQueryJoins().size(); i++) {
@@ -289,7 +298,7 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
     @Override
     public List<Feature> getInputFeatures(Object caller, Object foreignKeyValue,
             List<Object> idValues, Object feature, CoordinateReferenceSystem reprojection,
-            List<PropertyName> selectedProperties, boolean includeMandatory) throws IOException {
+            List<PropertyName> selectedProperties, boolean includeMandatory, Transaction transaction) throws IOException {
 
         if (isSameSource()) {
             // if linkField is null, this method shouldn't be called because the mapping
@@ -313,7 +322,7 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
                 .get((Name) featureTypeName);
         if (featureIterator == null) {
             featureIterator = initSourceFeatures(instance, (Name) featureTypeName, reprojection,
-                    selectedProperties, includeMandatory, 0, null);
+                    selectedProperties, includeMandatory, 0, null, transaction);
         }
         Expression nestedSourceExpression = instance.nestedSourceExpressions
                 .get((Name) featureTypeName);
@@ -361,7 +370,7 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
     @Override
     public List<Feature> getFeatures(Object caller, Object foreignKeyValue, List<Object> idValues,
             CoordinateReferenceSystem reprojection, Object feature,
-            List<PropertyName> selectedProperties, boolean includeMandatory, int resolveDepth, Integer resolveTimeOut) throws IOException {
+            List<PropertyName> selectedProperties, boolean includeMandatory, int resolveDepth, Integer resolveTimeOut, Transaction transaction) throws IOException {
 
         if (isSameSource()) {
             // if linkField is null, this method shouldn't be called because the mapping
@@ -384,7 +393,7 @@ public class JoiningNestedAttributeMapping extends NestedAttributeMapping {
                 .get((Name) featureTypeName);
         if (featureIterator == null) {
             featureIterator = initSourceFeatures(instance, (Name) featureTypeName, reprojection,
-                    selectedProperties, includeMandatory, resolveDepth, resolveTimeOut);
+                    selectedProperties, includeMandatory, resolveDepth, resolveTimeOut, transaction);
         }
         Expression nestedSourceExpression = instance.nestedSourceExpressions
                 .get((Name) featureTypeName);

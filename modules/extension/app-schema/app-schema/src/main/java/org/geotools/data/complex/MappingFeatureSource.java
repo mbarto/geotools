@@ -21,15 +21,19 @@ import java.awt.RenderingHints;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.geotools.data.DataAccess;
+import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureListener;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
 import org.geotools.data.QueryCapabilities;
 import org.geotools.data.ResourceInfo;
+import org.geotools.data.Transaction;
 import org.geotools.data.joining.JoiningQuery;
 import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureCollection;
@@ -71,6 +75,7 @@ public class MappingFeatureSource implements FeatureSource<FeatureType, Feature>
     private AppSchemaDataAccess store;
 
     private FeatureTypeMapping mapping;
+    
 
     public MappingFeatureSource(AppSchemaDataAccess store, FeatureTypeMapping mapping) {
         this.store = store;
@@ -181,20 +186,24 @@ public class MappingFeatureSource implements FeatureSource<FeatureType, Feature>
     }
     
     public FeatureCollection<FeatureType, Feature> getFeatures(Query query) throws IOException {
-        return new MappingFeatureCollection(store, mapping, namedQuery(query));
+        return new MappingFeatureCollection(store, mapping, namedQuery(query), new DefaultTransaction());
+    }
+    
+    public FeatureCollection<FeatureType, Feature> getFeatures(Query query, Transaction transaction) throws IOException {
+        return new MappingFeatureCollection(store, mapping, namedQuery(query), transaction);
     }
 
     public FeatureCollection<FeatureType, Feature> getFeatures(Filter filter) throws IOException {
-        return new MappingFeatureCollection(store, mapping, namedQuery(filter, Integer.MAX_VALUE));
+        return new MappingFeatureCollection(store, mapping, namedQuery(filter, Integer.MAX_VALUE), new DefaultTransaction());
     }
     
     public FeatureCollection<FeatureType, Feature> getFeatures(Filter filter, Hints hints) throws IOException {
-        return new MappingFeatureCollection(store, mapping, namedQuery(filter, Integer.MAX_VALUE, hints));
+        return new MappingFeatureCollection(store, mapping, namedQuery(filter, Integer.MAX_VALUE, hints), new DefaultTransaction());
     }
 
     public FeatureCollection<FeatureType, Feature> getFeatures() throws IOException {
         return new MappingFeatureCollection(store, mapping, namedQuery(Filter.INCLUDE,
-                Integer.MAX_VALUE));
+                Integer.MAX_VALUE), new DefaultTransaction());
     }
 
     public void removeFeatureListener(FeatureListener listener) {
@@ -225,5 +234,5 @@ public class MappingFeatureSource implements FeatureSource<FeatureType, Feature>
     public QueryCapabilities getQueryCapabilities() {
         return mapping.getSource().getQueryCapabilities();
     }
-
+    
 }

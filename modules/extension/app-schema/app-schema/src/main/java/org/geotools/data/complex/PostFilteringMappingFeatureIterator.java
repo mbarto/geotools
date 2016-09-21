@@ -19,6 +19,7 @@ package org.geotools.data.complex;
 
 import java.util.NoSuchElementException;
 
+import org.geotools.data.Transaction;
 import org.geotools.feature.FeatureIterator;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
@@ -40,7 +41,9 @@ public class PostFilteringMappingFeatureIterator implements IMappingFeatureItera
     protected int maxFeatures;
     protected int count = 0;
     
-    public PostFilteringMappingFeatureIterator(FeatureIterator<Feature> iterator, Filter filter, int maxFeatures, int offset) {
+    private Transaction transaction;
+    
+    public PostFilteringMappingFeatureIterator(FeatureIterator<Feature> iterator, Filter filter, int maxFeatures, int offset, Transaction transaction) {
         this.delegate = iterator;
         this.filter = filter;
         this.maxFeatures = maxFeatures;
@@ -49,6 +52,7 @@ public class PostFilteringMappingFeatureIterator implements IMappingFeatureItera
             next = getFilteredNext();
             startIndex++;
         }
+        this.transaction = transaction;
     }
 
     public void close() {

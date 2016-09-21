@@ -35,6 +35,7 @@ import org.geotools.data.DataAccess;
 import org.geotools.data.DataSourceException;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
+import org.geotools.data.Transaction;
 import org.geotools.data.complex.config.NonFeatureTypeProxy;
 import org.geotools.data.complex.config.Types;
 import org.geotools.data.complex.filter.XPath;
@@ -130,15 +131,15 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
      * Temporary/experimental changes for enabling subsetting for isList only. 
      */
     private Filter listFilter;
-
+    
     public DataAccessMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query, boolean isFiltered, boolean removeQueryLimitIfDenormalised) throws IOException {
-        this(store, mapping, query, isFiltered, removeQueryLimitIfDenormalised, false);        
+            Query query, boolean isFiltered, boolean removeQueryLimitIfDenormalised, Transaction transaction) throws IOException {
+        this(store, mapping, query, isFiltered, removeQueryLimitIfDenormalised, false, transaction);        
     }
     
     public DataAccessMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query, boolean isFiltered, boolean removeQueryLimitIfDenormalised, boolean hasPostFilter) throws IOException {
-        super(store, mapping, query, null, removeQueryLimitIfDenormalised, hasPostFilter);
+            Query query, boolean isFiltered, boolean removeQueryLimitIfDenormalised, boolean hasPostFilter, Transaction transaction) throws IOException {
+        super(store, mapping, query, null, removeQueryLimitIfDenormalised, hasPostFilter, transaction);
         this.isFiltered = isFiltered;
         if (isFiltered) {
             filteredFeatures = new ArrayList<String>();
@@ -146,8 +147,8 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
     }
     
     public DataAccessMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query) throws IOException {
-        this(store, mapping, query, null, false);
+            Query query, Transaction transaction) throws IOException {
+        this(store, mapping, query, null, false, transaction);
     }
 
     /**
@@ -162,8 +163,8 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
      * @throws IOException
      */
     public DataAccessMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query, Query unrolledQuery, boolean removeQueryLimitIfDenormalised) throws IOException {
-        super(store, mapping, query, unrolledQuery, removeQueryLimitIfDenormalised);
+            Query query, Query unrolledQuery, boolean removeQueryLimitIfDenormalised, Transaction transaction) throws IOException {
+        super(store, mapping, query, unrolledQuery, removeQueryLimitIfDenormalised, transaction);
     }
 
     @Override
@@ -321,7 +322,7 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
     }
 
     protected void initialiseSourceFeatures(FeatureTypeMapping mapping, Query query,
-            CoordinateReferenceSystem targetCRS) throws IOException {
+            CoordinateReferenceSystem targetCRS, Transaction transaction) throws IOException {
         mappedSource = mapping.getSource();
 
         //NC - joining query
@@ -333,6 +334,9 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
             } else {
                 throw new IllegalArgumentException("Joining queries are only supported on JDBC data stores");
             }
+        }
+        if(mappedSource instanceof JoiningJDBCFeatureSource) {
+        	((JoiningJDBCFeatureSource)mappedSource).setTransaction(transaction);
         }
         String version=(String)this.mapping.getTargetFeature().getType().getUserData().get("targetVersion");
         // might be because top level feature has no geometry
@@ -570,10 +574,11 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
                         // eg. gsml:GeologicUnit/gsml:occurence/gsml:MappedFeature
                         // and gsml:MappedFeature/gsml:specification/gsml:GeologicUnit
                         nestedFeatures.addAll(((NestedAttributeMapping) attMapping)
-                                .getInputFeatures(this, val, getIdValues(source), source, reprojection, selectedProperties, includeMandatory));
+                                .getInputFeatures(this, val, getIdValues(source), source, reprojection, selectedProperties, includeMandatory, transaction));
                     } else {
                         nestedFeatures.addAll(((NestedAttributeMapping) attMapping).getFeatures(
-                                this, val, getIdValues(source), reprojection, source, selectedProperties, includeMandatory, newResolveDepth, resolveTimeOut));
+                                this, val, getIdValues(source), reprojection, source, selectedProperties, includeMandatory, newResolveDepth, resolveTimeOut, 
+                                transaction));
                     }
                 }
                 values = nestedFeatures;
@@ -582,10 +587,10 @@ public class DataAccessMappingFeatureIterator extends AbstractMappingFeatureIter
                 // feature type also have a reference back to this type
                 // eg. gsml:GeologicUnit/gsml:occurence/gsml:MappedFeature
                 // and gsml:MappedFeature/gsml:specification/gsml:GeologicUnit
-                values = ((NestedAttributeMapping) attMapping).getInputFeatures(this, values, getIdValues(source), source, reprojection, selectedProperties, includeMandatory);
+                values = ((NestedAttributeMapping) attMapping).getInputFeatures(this, values, getIdValues(source), source, reprojection, selectedProperties, includeMandatory, transaction);
             } else {
                 values = ((NestedAttributeMapping) attMapping).getFeatures(this, values, getIdValues(source), reprojection,
-                        source, selectedProperties, includeMandatory, newResolveDepth, resolveTimeOut);
+                        source, selectedProperties, includeMandatory, newResolveDepth, resolveTimeOut, transaction);
             }
             if (isHRefLink) {
                 // only need to set the href link value, not the nested feature properties

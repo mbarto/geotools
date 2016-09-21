@@ -29,6 +29,7 @@ import net.opengis.wfs20.ResolveValueType;
 
 import org.geotools.data.DataSourceException;
 import org.geotools.data.Query;
+import org.geotools.data.Transaction;
 import org.geotools.data.complex.config.Types;
 import org.geotools.data.complex.filter.XPath;
 import org.geotools.data.complex.filter.XPathUtil.StepList;
@@ -140,25 +141,40 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
     protected int resolveDepth;
     
     protected Integer resolveTimeOut;
+    
+    protected Transaction transaction;
+    
+    protected boolean transactionOwner = true;
 
     /**
      * True if hasNext has been called prior to calling next()
      */
     private boolean hasNextCalled = false;
     
-    public AbstractMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query) throws IOException {
-        this(store, mapping, query, null);
+    
+    
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction, boolean owner) {
+        this.transaction = transaction;
+        this.transactionOwner = owner;
     }
 
     public AbstractMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query, Query unrolledQuery) throws IOException {
-        this(store, mapping, query, unrolledQuery, false, false);
+            Query query, Transaction transaction) throws IOException {
+        this(store, mapping, query, null, transaction);
+    }
+
+    public AbstractMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
+            Query query, Query unrolledQuery, Transaction transaction) throws IOException {
+        this(store, mapping, query, unrolledQuery, false, false, transaction);
     }
     
     public AbstractMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query, Query unrolledQuery, boolean hasPostFilter) throws IOException {
-        this(store, mapping, query, unrolledQuery, false, hasPostFilter);
+            Query query, Query unrolledQuery, boolean hasPostFilter, Transaction transaction) throws IOException {
+        this(store, mapping, query, unrolledQuery, false, hasPostFilter, transaction);
     }
 
 
@@ -168,11 +184,12 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
     //one of them can be null, but not both!
     
     public AbstractMappingFeatureIterator(AppSchemaDataAccess store, FeatureTypeMapping mapping,
-            Query query, Query unrolledQuery, boolean removeQueryLimitIfDenormalised, boolean hasPostFilter) throws IOException {
+            Query query, Query unrolledQuery, boolean removeQueryLimitIfDenormalised, boolean hasPostFilter, Transaction transaction) throws IOException {
         this.store = store;
         this.attf = new AppSchemaFeatureFactoryImpl();
 
         this.mapping = mapping;
+        this.transaction = transaction;
 
         // validate and initialise resolve options
         Hints hints = query.getHints();
@@ -231,7 +248,7 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
         }
         xpathAttributeBuilder = new XPath();
         xpathAttributeBuilder.setFeatureFactory(attf);
-        initialiseSourceFeatures(mapping, unrolledQuery, query.getCoordinateSystemReproject());
+        initialiseSourceFeatures(mapping, unrolledQuery, query.getCoordinateSystemReproject(), transaction);
         xpathAttributeBuilder.setFilterFactory(namespaceAwareFilterFactory);
     }
     
@@ -305,6 +322,13 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
      * Closes the underlying FeatureIterator
      */
     public void close() {
+        if (transactionOwner && transaction != null) {
+            try {
+                transaction.close();
+            } catch (Throwable t) {
+
+            }
+        }
         closeSourceFeatures();
     }
 
@@ -600,7 +624,7 @@ public abstract class AbstractMappingFeatureIterator implements IMappingFeatureI
     protected abstract FeatureIterator<? extends Feature> getSourceFeatureIterator();
 
     protected abstract void initialiseSourceFeatures(FeatureTypeMapping mapping, Query query,
-            CoordinateReferenceSystem crs) throws IOException;
+            CoordinateReferenceSystem crs, Transaction transaction) throws IOException;
 
     protected abstract boolean unprocessedFeatureExists();
 

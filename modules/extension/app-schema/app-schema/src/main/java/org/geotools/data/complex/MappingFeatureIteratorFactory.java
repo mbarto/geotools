@@ -23,8 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.dbcp.managed.TransactionContext;
+import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
+import org.geotools.data.Transaction;
 import org.geotools.data.complex.config.AppSchemaDataAccessConfigurator;
 import org.geotools.data.complex.config.Types;
 import org.geotools.data.complex.filter.ComplexFilterSplitter;
@@ -108,8 +111,7 @@ public class MappingFeatureIteratorFactory {
     }
 
     public static IMappingFeatureIterator getInstance(AppSchemaDataAccess store,
-            FeatureTypeMapping mapping, Query query, Filter unrolledFilter) throws IOException {
-
+            FeatureTypeMapping mapping, Query query, Filter unrolledFilter, Transaction transaction) throws IOException {
         if (mapping instanceof XmlFeatureTypeMapping) {
             return new XmlMappingFeatureIterator(store, mapping, query);
         }        
@@ -159,10 +161,10 @@ public class MappingFeatureIteratorFactory {
             	 ((JoiningQuery)unrolledQuery).setRootMapping(((JoiningQuery)query).getRootMapping());
             }
             if (isSimpleType(mapping)) {
-                iterator = new MappingAttributeIterator(store, mapping, query, unrolledQuery);
+                iterator = new MappingAttributeIterator(store, mapping, query, unrolledQuery, transaction);
             } else {
                 iterator = new DataAccessMappingFeatureIterator(store, mapping, query,
-                        unrolledQuery, false);
+                        unrolledQuery, false, transaction);
             }
         } else {
             // HACK HACK HACK
@@ -228,17 +230,17 @@ public class MappingFeatureIteratorFactory {
                     removeQueryLimitIfDenormalised = true;
                 } 
                 iterator = new DataAccessMappingFeatureIterator(store, mapping, query, isFiltered,
-                        removeQueryLimitIfDenormalised, hasPostFilter);
+                        removeQueryLimitIfDenormalised, hasPostFilter, transaction);
                 if (isListFilter != null) {
                     ((DataAccessMappingFeatureIterator) iterator).setListFilter(isListFilter);
                 }
                 if (hasPostFilter) {
                     iterator = new PostFilteringMappingFeatureIterator(iterator, filter,
-                            maxFeatures, offset);
+                            maxFeatures, offset, transaction);
                 }
             } else if (mappedSource instanceof MappingFeatureSource) {
                 // web service data access wrapper
-                iterator = new DataAccessMappingFeatureIterator(store, mapping, query);
+                iterator = new DataAccessMappingFeatureIterator(store, mapping, query, transaction);
                 if (isListFilter != null) {
                     ((DataAccessMappingFeatureIterator) iterator).setListFilter(isListFilter);
                 }
@@ -246,7 +248,7 @@ public class MappingFeatureIteratorFactory {
                 // non database sources e.g. property data store
                 Filter filter = query.getFilter();
                 iterator = new DataAccessMappingFeatureIterator(store, mapping, query,
-                        !Filter.INCLUDE.equals(filter), true);
+                        !Filter.INCLUDE.equals(filter), true, transaction);
                 // HACK HACK HACK
                 // experimental/temporary solution for isList subsetting by filtering
                 if (isListFilter != null) {

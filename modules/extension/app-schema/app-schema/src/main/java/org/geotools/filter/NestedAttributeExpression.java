@@ -24,6 +24,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.geotools.data.Transaction;
 import org.geotools.data.complex.AppSchemaDataAccessRegistry;
 import org.geotools.data.complex.AttributeMapping;
 import org.geotools.data.complex.FeatureTypeMapping;
@@ -122,7 +123,7 @@ public class NestedAttributeExpression extends AttributeExpressionImpl {
         } else {
             // get nested features
             try {
-                nestedFeatures = getNestedFeatures(feature, nestedMapping, nextFMapping);
+                nestedFeatures = getNestedFeatures(feature, nestedMapping, nextFMapping, null);
             } catch (IOException e) {
                 throw new RuntimeException("Failed evaluating filter expression: '" + attPath
                         + "'. Caused by: " + e.getMessage());
@@ -263,7 +264,7 @@ public class NestedAttributeExpression extends AttributeExpressionImpl {
      * @return list of nested features
      * @throws IOException
      */
-    private List<Feature> getNestedFeatures(Feature root, NestedAttributeMapping nestedMapping, FeatureTypeMapping fMapping) throws IOException {
+    private List<Feature> getNestedFeatures(Feature root, NestedAttributeMapping nestedMapping, FeatureTypeMapping fMapping, Transaction transaction) throws IOException {
         Object fTypeName = nestedMapping.getNestedFeatureType(root);
         if (fTypeName == null || !(fTypeName instanceof Name)) {
             return null;
@@ -276,10 +277,10 @@ public class NestedAttributeExpression extends AttributeExpressionImpl {
         }
         if (hasSimpleFeatures) {
             // normal app-schema mapping
-            return nestedMapping.getInputFeatures(val, fMapping);
+            return nestedMapping.getInputFeatures(val, fMapping, null);
         } else {
             // app-schema with a complex feature source
-            return nestedMapping.getFeatures(val, null, root, 0, null);
+            return nestedMapping.getFeatures(val, null, root, 0, null, null);
         }
     }
 
