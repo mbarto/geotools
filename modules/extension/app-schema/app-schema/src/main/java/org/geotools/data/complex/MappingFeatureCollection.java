@@ -182,6 +182,14 @@ public class MappingFeatureCollection implements FeatureCollection<FeatureType, 
      */
     public FeatureIterator<Feature> features() {
         try {
+            // HACK HACK HACK
+            // if the transaction has been closed we need to create a new one
+            try {
+                transaction.getProperty("hack");
+            } catch(IllegalStateException e) {
+                transaction = new DefaultTransaction();
+            }
+            // END OF HACK HACK HACK
             return MappingFeatureIteratorFactory.getInstance(store, mapping, query, unrolledFilter, transaction);
         } catch (IOException e) {
             throw new RuntimeException(e);
