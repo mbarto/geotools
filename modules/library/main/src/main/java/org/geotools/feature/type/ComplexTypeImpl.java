@@ -102,7 +102,7 @@ public class ComplexTypeImpl extends AttributeTypeImpl implements ComplexType {
             if (result == null) {
                 // full scan
                 for (PropertyDescriptor pd : properties) {
-                    if (pd.getName().getLocalPart().equals(name)) {
+                    if (pd.getName().getLocalPart().equals(name) || (name.equals("@id") && pd.getName().getLocalPart().equals("identifier"))) {
                         return pd;
                     }
                 }

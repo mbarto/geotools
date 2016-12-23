@@ -52,6 +52,7 @@ import org.geotools.util.logging.Logging;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.sort.SortBy;
@@ -466,7 +467,6 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
                 getDataStore().dialect.encodeColumnAlias(columnName, sql);
             } else {
                 encodeColumnName(columnName, featureType.getTypeName(), sql, query.getHints());
-                
             }
 
             sql.append(",");
@@ -600,7 +600,7 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
                              sortBySQL.append(" FROM ");
                              getDataStore().encodeTableName(lastTableName, sortBySQL, query.getHints()); 
                              if(isNestedFilter(filter)) {
-                            	 sortBySQL.append(" WHERE ").append(createNestedFilter(filter, query, toSQL));
+                            	 sortBySQL.append(" WHERE ").append(createNestedFilter(filter, query, toSQL, getDataStore().getSchema(lastTableName)));
                              } else {
                             	 sortBySQL.append(" ").append(toSQL.encodeToString(filter));
                              }
@@ -629,7 +629,11 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
                                     sortBySQL.append(",");*/
                                 sortBySQL.append(" FROM ");
                                 getDataStore().encodeTableName(lastTableName, sortBySQL, query.getHints());                                        
-                                sortBySQL.append(" ").append(toSQL.encodeToString(filter));
+                                if(isNestedFilter(filter)) {
+                                    sortBySQL.append(" WHERE ").append(createNestedFilter(filter, query, toSQL, getDataStore().getSchema(lastTableName)));
+                                } else {
+                                    sortBySQL.append(" ").append(toSQL.encodeToString(filter));
+                                }
                                 sortBySQL.append(" ) ");
                                 getDataStore().dialect.encodeTableName(TEMP_FILTER_ALIAS, sortBySQL);
                                 sortBySQL.append(" ON ( ");
@@ -654,7 +658,7 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
                 } else if (!pagingApplied) {
                     toSQL.setFieldEncoder(new JoiningFieldEncoder(curTypeName, getDataStore()));
                     if(isNestedFilter(filter)) {
-                   	 	sql.append(" WHERE ").append(createNestedFilter(filter, query, toSQL));
+                   	 	sql.append(" WHERE ").append(createNestedFilter(filter, query, toSQL, getDataStore().getSchema(lastTableName)));
                     } else {
                     	sql.append(" ").append(toSQL.encodeToString(filter));
                     }
@@ -695,7 +699,7 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
     }        
     
     private Object createNestedFilter(Filter filter,
-			JoiningQuery query, FilterToSQL filterToSQL) throws FilterToSQLException {
+			JoiningQuery query, FilterToSQL filterToSQL, SimpleFeatureType featureType) throws FilterToSQLException {
     	/*NestedFilterToSQL nested = new NestedFilterToSQL(query.getRootMapping(), filterToSQL);
     	nested.setInline(true);
     	return nested.encodeToString(filter);*/
@@ -705,7 +709,9 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
     	JDBCDataStore dataStore = (JDBCDataStore)query.getRootMapping().getSource().getDataStore();
     	SQLDialect dialect = dataStore.dialect;
 		FilterToSQL enhancedFilterToSQL = (FilterToSQL) enhancer.create(new Class[] {dialect.getClass()}, new Object[] {dialect});
-    	enhancedFilterToSQL.setInline(true);return enhancedFilterToSQL.encodeToString(filter);
+    	        enhancedFilterToSQL.setInline(true);
+    	        enhancedFilterToSQL.setFeatureType(featureType);
+    	        return enhancedFilterToSQL.encodeToString(filter);
 	}
 
 	private boolean isNestedFilter(Filter filter) {
@@ -780,7 +786,7 @@ public class JoiningJDBCFeatureSource extends JDBCFeatureSource {
                     if (filter != null) {
                     	filterToSQL.setFieldEncoder(new JoiningFieldEncoder(typeName, getDataStore()));
                     	if(isNestedFilter(filter)) {
-                    		topIds.append(" WHERE ").append(createNestedFilter(filter, query, filterToSQL));
+                    		topIds.append(" WHERE ").append(createNestedFilter(filter, query, filterToSQL, getDataStore().getSchema(typeName)));
                         } else {
                         	topIds.append(" ").append(filterToSQL.encodeToString(filter));
                         }
