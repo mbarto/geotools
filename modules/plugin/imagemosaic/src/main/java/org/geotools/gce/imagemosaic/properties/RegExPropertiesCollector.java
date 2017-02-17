@@ -78,7 +78,7 @@ public abstract class RegExPropertiesCollector extends PropertiesCollector {
 
         while (matcher.find()) {
             if (!fullPath) {
-                addMatch(matcher.group());
+                addMatch(matcher.groupCount() > 0 ? matcher.group(1) : matcher.group());
             } else {
                 // Chaining group Strings together
                 int count = matcher.groupCount();
