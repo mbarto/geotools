@@ -359,14 +359,19 @@ public class GranuleDescriptor {
             gcReader = format.getReader(granuleFile, hints);
             // Getting Dataset Layout
             layout = gcReader.getDatasetLayout();
+            
+            if(heterogeneousGranules) {
+                // do not trust the index, use the reader instead (reprojection might be involved)
+                this.granuleBBOX = ReferencedEnvelope.reference(gcReader.getOriginalEnvelope());
+                this.granuleEnvelope = gcReader.getOriginalEnvelope();
+            }
             //
             // get info about the raster we have to read
             //
             SpiHelper spiProvider = new SpiHelper(granuleFile, suggestedSPI);
             boolean isMultidim = spiProvider.isMultidim();
 
-            GeneralEnvelope envelope = gcReader.getOriginalEnvelope();
-            this.granuleEnvelope = envelope;
+            
 
             ovrProvider = new MaskOverviewProvider(layout, granuleFile, spiProvider);
 
