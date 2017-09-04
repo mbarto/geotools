@@ -381,6 +381,10 @@ public abstract class SQLDialect {
         aggregates.put( SumVisitor.class, "sum");
     }
     
+    public void registerFunctions(Map<String ,String> functions) {
+        
+    }
+    
     /**
      * Returns the java class mapping for a particular column.
      * <p>
@@ -905,7 +909,7 @@ public abstract class SQLDialect {
     /**
      * Encodes the CREATE TABLE statement.
      * <p>
-     * Default implementation adds “CREATE TABLE” to the sql buffer.
+     * Default implementation adds â€œCREATE TABLEâ€� to the sql buffer.
      * Subclasses may choose to override to handle db specific syntax.
      * </p>
      */
@@ -1435,5 +1439,19 @@ public abstract class SQLDialect {
      */
     public String[] getDesiredTablesType() {
         return new String[]{"TABLE", "VIEW", "MATERIALIZED VIEW", "SYNONYM"};
+    }
+    
+    protected void encodeFunction( String function, String column, StringBuffer sql ) {
+        sql.append(function).append("(");
+        sql.append(column);
+        sql.append(")");
+    }
+
+    public void encodeFunctionPrefix(String function, StringBuffer sql) {
+        sql.append(function).append("(");
+    }
+
+    public void encodeFunctionPostfix(String function, StringBuffer sql) {
+        sql.append(")");
     }
 }
