@@ -1584,6 +1584,9 @@ public final class JDBCDataStore extends ContentDataStore
      * @return the aggregate attribute or NULL if the visitor don't contains an aggregate attribute
      */
     protected AttributeDescriptor extractAggregateAttribute(Expression expression, SimpleFeatureType featureType) {
+        if (expression == null) {
+            return null;
+        }
         FilterAttributeExtractor extractor = new FilterAttributeExtractor(featureType);
         expression.accept(extractor, null);
         if (extractor.getPropertyNameSet().isEmpty()) {
