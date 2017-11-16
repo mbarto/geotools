@@ -1227,6 +1227,13 @@
         <details key="documentation" value="&#xA;              The typeName attribute is a list of one or more&#xA;              feature type names that indicate which types&#xA;              of feature instances should be included in the&#xA;              reponse set.  Specifying more than one typename&#xA;              indicates that a join operation is being performed.&#xA;              All the names in the typeName list must be valid&#xA;              types that belong to this query's feature content&#xA;              as defined by the GML Application Schema."/>
       </eAnnotations>
     </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="joinTypes" unique="false"
+        eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/XMLType.ecore#//String">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="kind" value="attribute"/>
+        <details key="name" value="joinTypes"/>
+      </eAnnotations>
+    </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionResponseType">
     <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">

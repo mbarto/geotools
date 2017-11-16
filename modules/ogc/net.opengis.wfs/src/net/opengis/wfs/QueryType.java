@@ -29,6 +29,7 @@ import org.opengis.filter.sort.SortBy;
  *
  * <p>
  * The following features are supported:
+ * </p>
  * <ul>
  *   <li>{@link net.opengis.wfs.QueryType#getGroup <em>Group</em>}</li>
  *   <li>{@link net.opengis.wfs.QueryType#getPropertyName <em>Property Name</em>}</li>
@@ -40,8 +41,8 @@ import org.opengis.filter.sort.SortBy;
  *   <li>{@link net.opengis.wfs.QueryType#getHandle <em>Handle</em>}</li>
  *   <li>{@link net.opengis.wfs.QueryType#getSrsName <em>Srs Name</em>}</li>
  *   <li>{@link net.opengis.wfs.QueryType#getTypeName <em>Type Name</em>}</li>
+ *   <li>{@link net.opengis.wfs.QueryType#getJoinTypes <em>Join Types</em>}</li>
  * </ul>
- * </p>
  *
  * @see net.opengis.wfs.WfsPackage#getQueryType()
  * @model extendedMetaData="name='QueryType' kind='elementOnly'"
@@ -314,5 +315,32 @@ public interface QueryType extends EObject {
      * @generated
      */
 	void setTypeName(List value);
+
+    /**
+     * Returns the value of the '<em><b>Join Types</b></em>' attribute.
+     * <!-- begin-user-doc -->
+     * <p>
+     * If the meaning of the '<em>Join Types</em>' attribute isn't clear,
+     * there really should be more of a description here...
+     * </p>
+     * <!-- end-user-doc -->
+     * @return the value of the '<em>Join Types</em>' attribute.
+     * @see #setJoinTypes(String)
+     * @see net.opengis.wfs.WfsPackage#getQueryType_JoinTypes()
+     * @model unique="false" dataType="org.eclipse.emf.ecore.xml.type.String"
+     *        extendedMetaData="kind='attribute' name='joinTypes'"
+     * @generated
+     */
+    String getJoinTypes();
+
+    /**
+     * Sets the value of the '{@link net.opengis.wfs.QueryType#getJoinTypes <em>Join Types</em>}' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @param value the new value of the '<em>Join Types</em>' attribute.
+     * @see #getJoinTypes()
+     * @generated
+     */
+    void setJoinTypes(String value);
 
 } // QueryType

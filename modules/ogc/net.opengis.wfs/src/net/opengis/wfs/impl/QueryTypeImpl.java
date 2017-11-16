@@ -42,6 +42,7 @@ import org.opengis.filter.sort.SortBy;
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
+ * </p>
  * <ul>
  *   <li>{@link net.opengis.wfs.impl.QueryTypeImpl#getGroup <em>Group</em>}</li>
  *   <li>{@link net.opengis.wfs.impl.QueryTypeImpl#getPropertyName <em>Property Name</em>}</li>
@@ -53,8 +54,8 @@ import org.opengis.filter.sort.SortBy;
  *   <li>{@link net.opengis.wfs.impl.QueryTypeImpl#getHandle <em>Handle</em>}</li>
  *   <li>{@link net.opengis.wfs.impl.QueryTypeImpl#getSrsName <em>Srs Name</em>}</li>
  *   <li>{@link net.opengis.wfs.impl.QueryTypeImpl#getTypeName <em>Type Name</em>}</li>
+ *   <li>{@link net.opengis.wfs.impl.QueryTypeImpl#getJoinTypes <em>Join Types</em>}</li>
  * </ul>
- * </p>
  *
  * @generated
  */
@@ -200,6 +201,26 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
 	protected List typeName = TYPE_NAME_EDEFAULT;
 
 	/**
+     * The default value of the '{@link #getJoinTypes() <em>Join Types</em>}' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see #getJoinTypes()
+     * @generated
+     * @ordered
+     */
+    protected static final String JOIN_TYPES_EDEFAULT = null;
+
+    /**
+     * The cached value of the '{@link #getJoinTypes() <em>Join Types</em>}' attribute.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see #getJoinTypes()
+     * @generated
+     * @ordered
+     */
+    protected String joinTypes = JOIN_TYPES_EDEFAULT;
+
+    /**
      * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
      * @generated
@@ -381,6 +402,27 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
 
 	/**
      * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    public String getJoinTypes() {
+        return joinTypes;
+    }
+
+    /**
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    public void setJoinTypes(String newJoinTypes) {
+        String oldJoinTypes = joinTypes;
+        joinTypes = newJoinTypes;
+        if (eNotificationRequired())
+            eNotify(new ENotificationImpl(this, Notification.SET, WfsPackage.QUERY_TYPE__JOIN_TYPES, oldJoinTypes, joinTypes));
+    }
+
+    /**
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
      * @generated
      */
@@ -422,6 +464,8 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
                 return getSrsName();
             case WfsPackage.QUERY_TYPE__TYPE_NAME:
                 return getTypeName();
+            case WfsPackage.QUERY_TYPE__JOIN_TYPES:
+                return getJoinTypes();
         }
         return super.eGet(featureID, resolve, coreType);
     }
@@ -467,6 +511,9 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
             case WfsPackage.QUERY_TYPE__TYPE_NAME:
                 setTypeName((List)newValue);
                 return;
+            case WfsPackage.QUERY_TYPE__JOIN_TYPES:
+                setJoinTypes((String)newValue);
+                return;
         }
         super.eSet(featureID, newValue);
     }
@@ -508,6 +555,9 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
             case WfsPackage.QUERY_TYPE__TYPE_NAME:
                 setTypeName(TYPE_NAME_EDEFAULT);
                 return;
+            case WfsPackage.QUERY_TYPE__JOIN_TYPES:
+                setJoinTypes(JOIN_TYPES_EDEFAULT);
+                return;
         }
         super.eUnset(featureID);
     }
@@ -539,6 +589,8 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
                 return SRS_NAME_EDEFAULT == null ? srsName != null : !SRS_NAME_EDEFAULT.equals(srsName);
             case WfsPackage.QUERY_TYPE__TYPE_NAME:
                 return TYPE_NAME_EDEFAULT == null ? typeName != null : !TYPE_NAME_EDEFAULT.equals(typeName);
+            case WfsPackage.QUERY_TYPE__JOIN_TYPES:
+                return JOIN_TYPES_EDEFAULT == null ? joinTypes != null : !JOIN_TYPES_EDEFAULT.equals(joinTypes);
         }
         return super.eIsSet(featureID);
     }
@@ -570,6 +622,8 @@ public class QueryTypeImpl extends EObjectImpl implements QueryType {
         result.append(srsName);
         result.append(", typeName: ");
         result.append(typeName);
+        result.append(", joinTypes: ");
+        result.append(joinTypes);
         result.append(')');
         return result.toString();
     }
