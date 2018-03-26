@@ -37,7 +37,6 @@ import org.geotools.data.wfs.internal.WFSClient;
 import org.geotools.data.wfs.internal.WFSConfig;
 import org.geotools.ows.ServiceException;
 import org.geotools.test.TestData;
-
 /**
  */
 public class WFSTestData {
@@ -350,6 +349,43 @@ public class WFSTestData {
         @Override
         public GetFeatureResponse issueRequest(GetFeatureRequest request) throws IOException {
             this.request = request;
+            /*GetFeatureRequest myRequest = spy(request);
+            doAnswer(new Answer<WFSResponse>() {
+
+                @Override
+                public WFSResponse answer(InvocationOnMock invocation) throws Throwable {
+                    WFSResponse response = (WFSResponse)invocation.callRealMethod();
+                    if (response instanceof GetFeatureResponse) {
+                        GetFeatureResponse myResponse = spy((GetFeatureResponse)response);
+                        doAnswer(new Answer<GetFeatureParser>() {
+
+                            @Override
+                            public GetFeatureParser answer(InvocationOnMock invocation)
+                                    throws Throwable {
+                                GetFeatureParser parser = (GetFeatureParser)invocation.callRealMethod();
+                                if (parser instanceof PullParserFeatureReader) {
+                                    PullParserFeatureReader ppfr = spy((PullParserFeatureReader) parser);
+                                    ppfr.setContextCustomizer(new ContextCustomizer() {
+                                        
+                                        @Override
+                                        public void customizeContext(MutablePicoContainer context) {
+                                            Schemas.
+                                            System.out.println("");
+                                            
+                                        }
+                                    });
+                                    return ppfr;
+                                }
+                                return parser;
+                            }
+                            
+                        }).when(myResponse).getFeatures(any(GeometryFactory.class));
+                        return myResponse;
+                    }
+                    return response;
+                }
+                
+            }).when(myRequest).createResponse(any(HTTPResponse.class));*/
             return super.issueRequest(request);
         }
 

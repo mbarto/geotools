@@ -49,6 +49,7 @@ import net.opengis.ows10.DomainType;
 import net.opengis.ows10.OperationType;
 import net.opengis.ows10.OperationsMetadataType;
 import net.opengis.ows10.RequestMethodType;
+import net.opengis.ows10.WGS84BoundingBoxType;
 import net.opengis.wfs.DeleteElementType;
 import net.opengis.wfs.DescribeFeatureTypeType;
 import net.opengis.wfs.FeatureTypeListType;
@@ -78,9 +79,11 @@ import org.geotools.data.wfs.internal.TransactionRequest.Delete;
 import org.geotools.data.wfs.internal.TransactionRequest.Insert;
 import org.geotools.data.wfs.internal.TransactionRequest.TransactionElement;
 import org.geotools.data.wfs.internal.TransactionRequest.Update;
+import org.geotools.referencing.CRS;
 import org.geotools.data.wfs.internal.DescribeStoredQueriesRequest;
 import org.geotools.data.wfs.internal.ListStoredQueriesRequest;
 import org.geotools.data.wfs.internal.Versions;
+import org.geotools.data.wfs.internal.WFSConfig;
 import org.geotools.data.wfs.internal.WFSExtensions;
 import org.geotools.data.wfs.internal.WFSGetCapabilities;
 import org.geotools.data.wfs.internal.WFSOperationType;
@@ -93,6 +96,9 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.capability.FilterCapabilities;
 import org.opengis.filter.sort.SortBy;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * 
@@ -436,6 +442,26 @@ public class StrictWFS_1_x_Strategy extends AbstractWFSStrategy {
             QName name = transTypeInfo.getName();
             typeInfos.put(name, transTypeInfo);
         }
+        for (FeatureTypeType typeInfo : featureTypes) {
+            QName name = typeInfo.getName();
+            try {
+                CoordinateReferenceSystem crs = CRS.decode(typeInfo.getDefaultSRS());
+                if (WFSConfig.invertAxisNeeded(config.getAxisOrder(), crs)) {
+                    WGS84BoundingBoxType bbox = (WGS84BoundingBoxType) typeInfo.getWGS84BoundingBox().get(0);
+                    bbox.setLowerCorner(invertCoordinates(bbox.getLowerCorner()));
+                    bbox.setUpperCorner(invertCoordinates(bbox.getUpperCorner()));
+                }
+            } catch (NoSuchAuthorityCodeException e) {
+                LOGGER.warning("Unknown SRS: " + typeInfo.getDefaultSRS());
+            } catch (FactoryException e) {
+                throw new RuntimeException(e);
+            }
+            typeInfos.put(name, typeInfo);
+        }
+    }
+    
+    private List invertCoordinates(List point) {
+        return Arrays.asList(point.get(1), point.get(0)); 
     }
     
     /**

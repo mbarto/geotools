@@ -48,6 +48,7 @@ import net.opengis.ows11.OperationType;
 import net.opengis.ows11.OperationsMetadataType;
 import net.opengis.ows11.RequestMethodType;
 import net.opengis.ows11.ValueType;
+import net.opengis.ows11.WGS84BoundingBoxType;
 import net.opengis.wfs20.AbstractTransactionActionType;
 import net.opengis.wfs20.DeleteType;
 import net.opengis.wfs20.DescribeFeatureTypeType;
@@ -71,6 +72,7 @@ import net.opengis.wfs20.Wfs20Factory;
 
 import org.eclipse.emf.ecore.EObject;
 import org.geotools.data.wfs.WFSDataStore;
+import org.geotools.data.wfs.WFSDataStoreFactory;
 import org.geotools.data.wfs.WFSServiceInfo;
 import org.geotools.data.wfs.internal.AbstractWFSStrategy;
 import org.geotools.data.wfs.internal.DescribeFeatureTypeRequest;
@@ -88,6 +90,7 @@ import org.geotools.data.wfs.internal.TransactionRequest.Insert;
 import org.geotools.data.wfs.internal.TransactionRequest.TransactionElement;
 import org.geotools.data.wfs.internal.TransactionRequest.Update;
 import org.geotools.data.wfs.internal.Versions;
+import org.geotools.data.wfs.internal.WFSConfig;
 import org.geotools.data.wfs.internal.WFSExtensions;
 import org.geotools.data.wfs.internal.WFSGetCapabilities;
 import org.geotools.data.wfs.internal.WFSOperationType;
@@ -95,12 +98,15 @@ import org.geotools.data.wfs.internal.WFSResponseFactory;
 import org.geotools.data.wfs.internal.WFSStrategy;
 import org.geotools.factory.Hints;
 import org.geotools.factory.Hints.ConfigurationMetadataKey;
+import org.geotools.referencing.CRS;
 import org.geotools.util.Version;
 import org.geotools.wfs.v2_0.WFS;
 import org.geotools.xml.Configuration;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.Filter;
 import org.opengis.filter.capability.FilterCapabilities;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 /**
  * 
@@ -159,8 +165,23 @@ public class StrictWFS_2_0_Strategy extends AbstractWFSStrategy {
 
         for (FeatureTypeType typeInfo : featureTypes) {
             QName name = typeInfo.getName();
+            try {
+                if (WFSConfig.invertAxisNeeded(config.getAxisOrder(), CRS.decode(typeInfo.getDefaultCRS()))) {
+                    WGS84BoundingBoxType bbox = typeInfo.getWGS84BoundingBox().get(0);
+                    bbox.setLowerCorner(invertCoordinates(bbox.getLowerCorner()));
+                    bbox.setUpperCorner(invertCoordinates(bbox.getUpperCorner()));
+                }
+            } catch (NoSuchAuthorityCodeException e) {
+                LOGGER.warning("Unknown SRS: " + typeInfo.getDefaultCRS());
+            } catch (FactoryException e) {
+                throw new RuntimeException(e);
+            }
             typeInfos.put(name, typeInfo);
         }
+    }
+
+    private List invertCoordinates(List point) {
+        return Arrays.asList(point.get(1), point.get(0)); 
     }
 
     @Override

@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<xs:schema xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:comuni="testwfs" xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="testwfs">
+<xs:import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
+<xs:element name='comuni11' type='comuni:comuni11Type' substitutionGroup='gml:AbstractFeature' />
+<xs:element name='comuni4326' type='comuni:comuni4326Type' substitutionGroup='gml:AbstractFeature' />
+<xs:complexType name='comuni11Type'>
+ <xs:complexContent>
+  <xs:extension base='gml:AbstractFeatureType'>
+   <xs:sequence>
+    <xs:element name ='cod_reg' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='cod_pro' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='cod_istat' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='pro_com' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='nome' type='xs:string' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='shape_leng' type='xs:decimal' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='shape_area' type='xs:decimal' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='the_geom' type='gml:MultiSurfacePropertyType' nillable='true' minOccurs='0' maxOccurs='1'/>
+   </xs:sequence>
+  </xs:extension>
+ </xs:complexContent>
+</xs:complexType>
+<xs:complexType name='comuni4326Type'>
+ <xs:complexContent>
+  <xs:extension base='gml:AbstractFeatureType'>
+   <xs:sequence>
+    <xs:element name ='cod_reg' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='cod_pro' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='cod_istat' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='pro_com' type='xs:int' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='nome' type='xs:string' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='shape_leng' type='xs:decimal' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='shape_area' type='xs:decimal' nillable='true' minOccurs='0' maxOccurs='1'/>
+    <xs:element name ='the_geom' type='gml:MultiSurfacePropertyType' nillable='true' minOccurs='0' maxOccurs='1'/>
+   </xs:sequence>
+  </xs:extension>
+ </xs:complexContent>
+</xs:complexType>
+</xs:schema>

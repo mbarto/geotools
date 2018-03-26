@@ -14,15 +14,16 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *    Lesser General Public License for more details.
  */
-package org.geotools.data.wfs.internal.v1_1;
+package org.geotools.data.wfs.internal.v2_0;
 
-import static org.junit.Assert.assertEquals;
 import static org.geotools.data.wfs.WFSTestData.createTestProtocol;
-import static org.geotools.data.wfs.WFSTestData.url;
 import static org.geotools.data.wfs.WFSTestData.stream;
-import static org.geotools.data.wfs.WFSTestData.MockHTTPClient;
+import static org.geotools.data.wfs.WFSTestData.url;
+import static org.junit.Assert.assertEquals;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.geotools.data.Query;
@@ -32,9 +33,11 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.wfs.TestHttpResponse;
 import org.geotools.data.wfs.WFSDataStore;
 import org.geotools.data.wfs.WFSDataStoreFactory;
+import org.geotools.data.wfs.WFSTestData.MockHTTPClient;
 import org.geotools.data.wfs.WFSTestData.TestWFSClient;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.identity.FeatureIdImpl;
+import org.junit.Before;
 import org.junit.Test;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.filter.FilterFactory2;
@@ -54,22 +57,28 @@ public class AxisOrderTest {
 
     private String typeName = "comuni_comuni11";
     private String typeName4326 = "comuni_comuni4326";
-        
     
+    Map<String, String> replacements = new HashMap<String, String>();
 
+    @Before
+    public void setup() {
+        replacements.put("__DESCRIBE_FEATURE_TYPE_XSD__", url("axisorder_20/DescribeFeatureType.xsd").toString());
+    }
+    
+    
     @Test
     public void testGetFeatureWithNorthEastAxisOrderOutputEPSG4326() throws Exception {
     	
-    	TestHttpResponse httpResponse = new TestHttpResponse("text/xml; subtype=gml/3.1.1",
-                "UTF-8", stream("axisorder/GetFeatureById4326.xml"));
+    	TestHttpResponse httpResponse = new TestHttpResponse("application/gml+xml; version=3.2",
+                "UTF-8", stream("axisorder_20/GetFeatureById4326.xml"), replacements);
        
-        TestWFSClient wfs = createTestProtocol("axisorder/GetCapabilities.xml", new MockHTTPClient(httpResponse));
+        TestWFSClient wfs = createTestProtocol("axisorder_20/GetCapabilities.xml", new MockHTTPClient(httpResponse));
         
         // axis order used will be NORTH / EAST
         wfs.setAxisOrderOverride(WFSDataStoreFactory.AXIS_ORDER_COMPLIANT, WFSDataStoreFactory.AXIS_ORDER_COMPLIANT); 
         
         // override the describe feature type url so it loads from the test resource
-        wfs.setDescribeFeatureTypeURLOverride(url("axisorder/DescribeFeatureType.xsd"));
+        wfs.setDescribeFeatureTypeURLOverride(url("axisorder_20/DescribeFeatureType.xsd"));
                 
         WFSDataStore ds = new WFSDataStore(wfs);
                 
@@ -101,12 +110,12 @@ public class AxisOrderTest {
     @Test
     public void testGetFeatureWithNorthEastAxisOrderFilter() throws Exception {
         
-        TestHttpResponse httpResponse = new TestHttpResponse("text/xml; subtype=gml/3.1.1",
-                "UTF-8", stream("axisorder/GetFeaturesByBBox.xml"));
-        TestWFSClient wfs = createTestProtocol("axisorder/GetCapabilities.xml", new MockHTTPClient(httpResponse));
+        TestHttpResponse httpResponse = new TestHttpResponse("application/gml+xml; version=3.2",
+                "UTF-8", stream("axisorder_20/GetFeaturesByBBox.xml"), replacements);
+        TestWFSClient wfs = createTestProtocol("axisorder_20/GetCapabilities.xml", new MockHTTPClient(httpResponse));
 
         // override the describe feature type url so it loads from the test resource
-        wfs.setDescribeFeatureTypeURLOverride(url("axisorder/DescribeFeatureType.xsd"));
+        wfs.setDescribeFeatureTypeURLOverride(url("axisorder_20/DescribeFeatureType.xsd"));
 
         WFSDataStore ds = new WFSDataStore(wfs);
         
@@ -132,12 +141,12 @@ public class AxisOrderTest {
     @Test
     public void testGetFeatureWithEastNorthAxisOrderFilter() throws Exception {
         
-        TestHttpResponse httpResponse = new TestHttpResponse("text/xml; subtype=gml/3.1.1",
-               "UTF-8", stream("axisorder/GetFeaturesByBBox.xml"));
-        TestWFSClient wfs = createTestProtocol("axisorder/GetCapabilities.xml", new MockHTTPClient(httpResponse));
+        TestHttpResponse httpResponse = new TestHttpResponse("application/gml+xml; version=3.2",
+               "UTF-8", stream("axisorder_20/GetFeaturesByBBox.xml"), replacements);
+        TestWFSClient wfs = createTestProtocol("axisorder_20/GetCapabilities.xml", new MockHTTPClient(httpResponse));
 
         // override the describe feature type url so it loads from the test resource
-        wfs.setDescribeFeatureTypeURLOverride(url("axisorder/DescribeFeatureType.xsd"));
+        wfs.setDescribeFeatureTypeURLOverride(url("axisorder_20/DescribeFeatureType.xsd"));
 
         WFSDataStore ds = new WFSDataStore(wfs);
         
@@ -163,12 +172,12 @@ public class AxisOrderTest {
     @Test
     public void testGetFeatureWithCompliantAxisOrderFilter() throws Exception {
         
-        TestHttpResponse httpResponse = new TestHttpResponse("text/xml; subtype=gml/3.1.1",
-                "UTF-8", stream("axisorder/GetFeaturesByBBox.xml"));
-        TestWFSClient wfs = createTestProtocol("axisorder/GetCapabilities.xml", new MockHTTPClient(httpResponse));
+        TestHttpResponse httpResponse = new TestHttpResponse("application/gml+xml; version=3.2",
+                "UTF-8", stream("axisorder_20/GetFeaturesByBBox.xml"), replacements);
+        TestWFSClient wfs = createTestProtocol("axisorder_20/GetCapabilities.xml", new MockHTTPClient(httpResponse));
 
         // override the describe feature type url so it loads from the test resource
-        wfs.setDescribeFeatureTypeURLOverride(url("axisorder/DescribeFeatureType.xsd"));
+        wfs.setDescribeFeatureTypeURLOverride(url("axisorder_20/DescribeFeatureType.xsd"));
 
         WFSDataStore ds = new WFSDataStore(wfs);
         
@@ -193,12 +202,12 @@ public class AxisOrderTest {
     
     @Test
     public void testGetFeatureWithEastNorthAxisOrderOutputEPSG4326() throws Exception {     
-        TestHttpResponse httpResponse = new TestHttpResponse("text/xml; subtype=gml/3.1.1",
-                "UTF-8", stream("axisorder/GetFeatureById4326.xml"));
-        TestWFSClient wfs = createTestProtocol("axisorder/GetCapabilities.xml", new MockHTTPClient(httpResponse));
+        TestHttpResponse httpResponse = new TestHttpResponse("application/gml+xml; version=3.2",
+                "UTF-8", stream("axisorder_20/GetFeatureById4326.xml"), replacements);
+        TestWFSClient wfs = createTestProtocol("axisorder_20/GetCapabilities.xml", new MockHTTPClient(httpResponse));
 
         // override the describe feature type url so it loads from the test resource
-        wfs.setDescribeFeatureTypeURLOverride(url("axisorder/DescribeFeatureType.xsd"));
+        wfs.setDescribeFeatureTypeURLOverride(url("axisorder_20/DescribeFeatureType.xsd"));
 
         WFSDataStore ds = new WFSDataStore(wfs);
         // axis order used will be EAST / NORTH
@@ -231,12 +240,12 @@ public class AxisOrderTest {
     
     @Test
     public void testGetFeatureWithEastNorthAxisOrderOutputEPSG3857() throws Exception {   
-        TestHttpResponse httpResponse = new TestHttpResponse("text/xml; subtype=gml/3.1.1",
-                "UTF-8", stream("axisorder/GetFeatureById.xml"));
-        TestWFSClient wfs = createTestProtocol("axisorder/GetCapabilities.xml", new MockHTTPClient(httpResponse));
+        TestHttpResponse httpResponse = new TestHttpResponse("application/gml+xml; version=3.2",
+                "UTF-8", stream("axisorder_20/GetFeatureById.xml"), replacements);
+        TestWFSClient wfs = createTestProtocol("axisorder_20/GetCapabilities.xml", new MockHTTPClient(httpResponse));
 
         // override the describe feature type url so it loads from the test resource
-        wfs.setDescribeFeatureTypeURLOverride(url("axisorder/DescribeFeatureType.xsd"));
+        wfs.setDescribeFeatureTypeURLOverride(url("axisorder_20/DescribeFeatureType.xsd"));
 
         WFSDataStore ds = new WFSDataStore(wfs);
         // axis order used will be EAST / NORTH

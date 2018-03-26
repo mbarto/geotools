@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Map;
 
 import org.geotools.data.ows.HTTPResponse;
 
@@ -48,6 +49,10 @@ public class TestHttpResponse implements HTTPResponse {
     }
 
     public TestHttpResponse(String contentType, String charset, InputStream contentInputStream) {
+        this(contentType, charset, contentInputStream, null);
+    }
+    
+    public TestHttpResponse(String contentType, String charset, InputStream contentInputStream, Map<String, String> replacements) {
         this.contentType = contentType;
         this.charset = charset;
         BufferedReader reader = new BufferedReader(new InputStreamReader(contentInputStream));
@@ -55,13 +60,21 @@ public class TestHttpResponse implements HTTPResponse {
         String line;
         try {
             while ((line = reader.readLine()) != null) {
-                sb.append(line);
+                sb.append(handleReplacements(line, replacements));
                 sb.append('\n');
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         this.bodyContent = sb.toString();
+    }
+    private Object handleReplacements(String line, Map<String, String> replacements) {
+        if (replacements != null) {
+            for (String key : replacements.keySet()) {
+                line = line.replace(key, replacements.get(key));
+            }
+        }
+        return line;
     }
 
     public TestHttpResponse(URL response, String contentType) {

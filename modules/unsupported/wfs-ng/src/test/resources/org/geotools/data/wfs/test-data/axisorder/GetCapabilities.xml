@@ -117,6 +117,12 @@
  <DefaultSRS>urn:ogc:def:crs:EPSG::3857</DefaultSRS>
   <ows:WGS84BoundingBox> <ows:LowerCorner>2.814970 33.290135</ows:LowerCorner> <ows:UpperCorner>11.786853 42.396053</ows:UpperCorner> </ows:WGS84BoundingBox>
 </FeatureType>
+<FeatureType xmlns:comuni="http://www.tinyows.org/">
+  <Name>comuni:comuni4326</Name>
+  <Title>World Administrative Boundaries</Title>
+ <DefaultSRS>urn:ogc:def:crs:EPSG::4326</DefaultSRS>
+  <ows:WGS84BoundingBox> <ows:LowerCorner>2.814970 33.290135</ows:LowerCorner> <ows:UpperCorner>11.786853 42.396053</ows:UpperCorner> </ows:WGS84BoundingBox>
+</FeatureType>
  </FeatureTypeList>
  <SupportsGMLObjectTypeList>
   <GMLObjectType>
