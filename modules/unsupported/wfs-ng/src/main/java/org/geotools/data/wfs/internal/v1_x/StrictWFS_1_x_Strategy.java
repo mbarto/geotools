@@ -444,18 +444,6 @@ public class StrictWFS_1_x_Strategy extends AbstractWFSStrategy {
         }
         for (FeatureTypeType typeInfo : featureTypes) {
             QName name = typeInfo.getName();
-            try {
-                CoordinateReferenceSystem crs = CRS.decode(typeInfo.getDefaultSRS());
-                if (WFSConfig.invertAxisNeeded(config.getAxisOrder(), crs)) {
-                    WGS84BoundingBoxType bbox = (WGS84BoundingBoxType) typeInfo.getWGS84BoundingBox().get(0);
-                    bbox.setLowerCorner(invertCoordinates(bbox.getLowerCorner()));
-                    bbox.setUpperCorner(invertCoordinates(bbox.getUpperCorner()));
-                }
-            } catch (NoSuchAuthorityCodeException e) {
-                LOGGER.warning("Unknown SRS: " + typeInfo.getDefaultSRS());
-            } catch (FactoryException e) {
-                throw new RuntimeException(e);
-            }
             typeInfos.put(name, typeInfo);
         }
     }
