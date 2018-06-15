@@ -16,17 +16,15 @@
  */
 package org.geotools.data.wfs.internal.parsers;
 
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-
 import org.geotools.data.wfs.internal.GetFeatureParser;
 import org.geotools.data.wfs.internal.WFSConfig;
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer;
-import org.geotools.referencing.CRS;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.operation.transform.AffineTransform2D;
 import org.geotools.xml.Configuration;
 import org.geotools.xml.PullParser;
@@ -35,16 +33,12 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
-import org.picocontainer.MutablePicoContainer;
 import org.xml.sax.SAXException;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-
 /**
- * {@link GetFeatureParser} for {@link WFSFeatureReader} that uses the geotools
- * {@link PullParser} to fetch Features out of a WFS GetFeature response.
- * 
+ * {@link GetFeatureParser} for {@link WFSFeatureReader} that uses the geotools {@link PullParser}
+ * to fetch Features out of a WFS GetFeature response.
+ *
  * @author Niels Charlier
  */
 public class PullParserFeatureReader implements GetFeatureParser {
@@ -52,30 +46,35 @@ public class PullParserFeatureReader implements GetFeatureParser {
     private PullParser parser;
 
     private InputStream inputStream;
-    
+
     private FeatureType featureType;
-    
+
     private final String axisOrder;
-    
+
     GeometryCoordinateSequenceTransformer transformer;
 
-    public PullParserFeatureReader(final Configuration wfsConfiguration,
-            final InputStream getFeatureResponseStream, final FeatureType featureType,
+    public PullParserFeatureReader(
+            final Configuration wfsConfiguration,
+            final InputStream getFeatureResponseStream,
+            final FeatureType featureType,
             String axisOrder)
             throws IOException {
         this.inputStream = getFeatureResponseStream;
         this.featureType = featureType;
         this.axisOrder = axisOrder;
-        this.parser = new PullParser(wfsConfiguration, getFeatureResponseStream, 
-                new QName(featureType.getName().getNamespaceURI(), featureType.getName().getLocalPart()));
-        
+        this.parser =
+                new PullParser(
+                        wfsConfiguration,
+                        getFeatureResponseStream,
+                        new QName(
+                                featureType.getName().getNamespaceURI(),
+                                featureType.getName().getLocalPart()));
+
         transformer = new GeometryCoordinateSequenceTransformer();
         transformer.setMathTransform(new AffineTransform2D(0, 1, 1, 0, 0, 0));
     }
 
-    /**
-     * @see GetFeatureParser#close()
-     */
+    /** @see GetFeatureParser#close() */
     public void close() throws IOException {
         if (inputStream != null) {
             try {
@@ -87,9 +86,7 @@ public class PullParserFeatureReader implements GetFeatureParser {
         }
     }
 
-    /**
-     * @see GetFeatureParser#parse()
-     */
+    /** @see GetFeatureParser#parse() */
     public SimpleFeature parse() throws IOException {
         Object parsed;
         try {
@@ -101,7 +98,7 @@ public class PullParserFeatureReader implements GetFeatureParser {
         if (feature != null && feature.getDefaultGeometry() != null) {
             Geometry geometry = (Geometry) feature.getDefaultGeometry();
             if (geometry.getUserData() instanceof CoordinateReferenceSystem) {
-                CoordinateReferenceSystem crs = (CoordinateReferenceSystem)geometry.getUserData();
+                CoordinateReferenceSystem crs = (CoordinateReferenceSystem) geometry.getUserData();
                 if (WFSConfig.invertAxisNeeded(axisOrder, crs)) {
                     try {
                         feature.setDefaultGeometry(invertGeometryCoordinates(geometry));
@@ -118,9 +115,7 @@ public class PullParserFeatureReader implements GetFeatureParser {
         return transformer.transform(geometry);
     }
 
-    /**
-     * @see GetFeatureParser#getNumberOfFeatures()
-     */
+    /** @see GetFeatureParser#getNumberOfFeatures() */
     public int getNumberOfFeatures() {
         return -1;
     }
@@ -131,13 +126,11 @@ public class PullParserFeatureReader implements GetFeatureParser {
     }
 
     @Override
-    public void setGeometryFactory(GeometryFactory geometryFactory) {     
-        //TODO implement?
+    public void setGeometryFactory(GeometryFactory geometryFactory) {
+        // TODO implement?
     }
-    
+
     public void setContextCustomizer(ContextCustomizer contextCustomizer) {
         parser.setContextCustomizer(contextCustomizer);
     }
-    
-
 }

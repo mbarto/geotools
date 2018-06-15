@@ -16,13 +16,14 @@
  */
 package org.geotools.data.wfs;
 
+import com.vividsolutions.jts.geom.CoordinateSequenceFactory;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 import java.io.IOException;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.xml.namespace.QName;
-
 import org.geotools.data.DataSourceException;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.DiffFeatureReader;
@@ -49,7 +50,6 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.Hints;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.filter.visitor.FixBBOXFilterVisitor;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.gml2.bindings.GML2EncodingUtils;
 import org.geotools.util.logging.Logging;
@@ -61,10 +61,6 @@ import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-
-import com.vividsolutions.jts.geom.CoordinateSequenceFactory;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 
 class WFSFeatureSource extends ContentFeatureSource {
 
@@ -93,7 +89,7 @@ class WFSFeatureSource extends ContentFeatureSource {
 
     @Override
     protected boolean canOffset() {
-        return false;// TODO: check with the WFS client
+        return false; // TODO: check with the WFS client
     }
 
     /**
@@ -138,9 +134,9 @@ class WFSFeatureSource extends ContentFeatureSource {
     }
 
     /**
-     * @return the WFS advertised bounds of the feature type if
-     *         {@code Filter.INCLUDE ==  query.getFilter()}, reprojected to the Query's crs, or
-     *         {@code null} otherwise as it would be too expensive to calculate.
+     * @return the WFS advertised bounds of the feature type if {@code Filter.INCLUDE ==
+     *     query.getFilter()}, reprojected to the Query's crs, or {@code null} otherwise as it would
+     *     be too expensive to calculate.
      * @see FeatureSource#getBounds(Query)
      * @see org.geotools.data.store.ContentFeatureSource#getBoundsInternal(org.geotools.data.Query)
      */
@@ -165,9 +161,9 @@ class WFSFeatureSource extends ContentFeatureSource {
 
     /**
      * @return the remote WFS advertised number of features for the given query only if the query
-     *         filter is fully supported AND the wfs returns that information in as an attribute of
-     *         the FeatureCollection (since the request is performed with resultType=hits),
-     *         otherwise {@code -1} as it would be too expensive to calculate.
+     *     filter is fully supported AND the wfs returns that information in as an attribute of the
+     *     FeatureCollection (since the request is performed with resultType=hits), otherwise {@code
+     *     -1} as it would be too expensive to calculate.
      * @see FeatureSource#getCount(Query)
      * @see org.geotools.data.store.ContentFeatureSource#getCountInternal(org.geotools.data.Query)
      */
@@ -184,10 +180,10 @@ class WFSFeatureSource extends ContentFeatureSource {
         int resultCount = featureParser.getNumberOfFeatures();
         return resultCount;
     }
-    
+
     /**
      * Invert axis order in the given query filter, if needed.
-     * 
+     *
      * @param query
      */
     private void invertAxisInFilterIfNeeded(Query query, SimpleFeatureType featureType) {
@@ -203,18 +199,18 @@ class WFSFeatureSource extends ContentFeatureSource {
 
     private void invertAxisInFilter(Query query) {
         Filter filter = query.getFilter();
-   
+
         FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(null);
         InvertAxisFilterVisitor visitor = new InvertAxisFilterVisitor(ff, new GeometryFactory());
         filter = (Filter) filter.accept(visitor, null);
-   
+
         query.setFilter(filter);
     }
-    
+
     /**
-     * Repleace FastBBOX filters with "real" BBOX filter, so that CRS is correctly
-     * included in the filter we send to the cascaded WFS.
-     * 
+     * Repleace FastBBOX filters with "real" BBOX filter, so that CRS is correctly included in the
+     * filter we send to the cascaded WFS.
+     *
      * @param query
      */
     private void removeFastBBOXFilterIfNeeded(Query query) {
@@ -238,10 +234,8 @@ class WFSFeatureSource extends ContentFeatureSource {
 
         request.setTypeName(remoteTypeName);
         request.setFullType(remoteSimpleFeatureType);
-        
         removeFastBBOXFilterIfNeeded(query);
         invertAxisInFilterIfNeeded(query, remoteSimpleFeatureType);
-        
         request.setFilter(query.getFilter());
         request.setResultType(resultType);
         request.setHints(query.getHints());
@@ -254,8 +248,8 @@ class WFSFeatureSource extends ContentFeatureSource {
         request.setPropertyNames(query.getPropertyNames());
         request.setSortBy(query.getSortBy());
 
-        String srsName = getSupportedSrsName(request, query);  
-        
+        String srsName = getSupportedSrsName(request, query);
+
         request.setSrsName(srsName);
         return request;
     }
@@ -275,7 +269,8 @@ class WFSFeatureSource extends ContentFeatureSource {
         GetFeatureRequest request = createGetFeature(localQuery, ResultType.RESULTS);
 
         final SimpleFeatureType destType = getQueryType(localQuery, getSchema());
-        final SimpleFeatureType contentType = getQueryType(localQuery, (SimpleFeatureType) request.getFullType());
+        final SimpleFeatureType contentType =
+                getQueryType(localQuery, (SimpleFeatureType) request.getFullType());
         request.setQueryType(contentType);
 
         GetFeatureResponse response = client.issueRequest(request);
@@ -286,8 +281,11 @@ class WFSFeatureSource extends ContentFeatureSource {
         FeatureReader<SimpleFeatureType, SimpleFeature> reader;
         reader = new WFSFeatureReader(features);
 
-        if (request.getUnsupportedFilter() != null && request.getUnsupportedFilter() != Filter.INCLUDE) {
-            reader = new FilteringFeatureReader<SimpleFeatureType, SimpleFeature>(reader, request.getUnsupportedFilter());
+        if (request.getUnsupportedFilter() != null
+                && request.getUnsupportedFilter() != Filter.INCLUDE) {
+            reader =
+                    new FilteringFeatureReader<SimpleFeatureType, SimpleFeature>(
+                            reader, request.getUnsupportedFilter());
         }
 
         if (!reader.hasNext()) {
@@ -299,7 +297,7 @@ class WFSFeatureSource extends ContentFeatureSource {
             final boolean cloneContents = false;
             reader = new ReTypeFeatureReader(reader, destType, cloneContents);
         }
-        
+
         reader = applyReprojectionDecorator(reader, localQuery, request);
 
         Transaction transaction = getTransaction();
@@ -309,15 +307,18 @@ class WFSFeatureSource extends ContentFeatureSource {
             WFSLocalTransactionState wfsState = (WFSLocalTransactionState) state;
             if (wfsState != null) {
                 WFSDiff diff = wfsState.getDiff();
-                reader = new DiffFeatureReader<SimpleFeatureType, SimpleFeature>(reader, diff, localQuery.getFilter());
+                reader =
+                        new DiffFeatureReader<SimpleFeatureType, SimpleFeature>(
+                                reader, diff, localQuery.getFilter());
             }
         }
         return reader;
     }
-    
+
     protected String getSupportedSrsName(GetFeatureRequest request, Query query) {
         String epsgCode = GML2EncodingUtils.epsgCode(query.getCoordinateSystem());
-        Set<String> supported = request.getStrategy().getSupportedCRSIdentifiers(request.getTypeName());
+        Set<String> supported =
+                request.getStrategy().getSupportedCRSIdentifiers(request.getTypeName());
         for (String supportedSrs : supported) {
             if (supportedSrs.endsWith(":" + epsgCode)) {
                 return supportedSrs;
@@ -325,14 +326,20 @@ class WFSFeatureSource extends ContentFeatureSource {
         }
         return null;
     }
-    
-    protected  FeatureReader<SimpleFeatureType, SimpleFeature> applyReprojectionDecorator(FeatureReader <SimpleFeatureType, SimpleFeature> reader, Query query, GetFeatureRequest request) {
-         FeatureReader<SimpleFeatureType, SimpleFeature> tmp = reader;
+
+    protected FeatureReader<SimpleFeatureType, SimpleFeature> applyReprojectionDecorator(
+            FeatureReader<SimpleFeatureType, SimpleFeature> reader,
+            Query query,
+            GetFeatureRequest request) {
+        FeatureReader<SimpleFeatureType, SimpleFeature> tmp = reader;
         if (query.getCoordinateSystem() != null
-                && !query.getCoordinateSystem().equals(reader.getFeatureType().getCoordinateReferenceSystem())) {
+                && !query.getCoordinateSystem()
+                        .equals(reader.getFeatureType().getCoordinateReferenceSystem())) {
             if (request.getSrsName() != null) {
                 try {
-                    reader = new ForceCoordinateSystemFeatureReader(reader, query.getCoordinateSystem());
+                    reader =
+                            new ForceCoordinateSystemFeatureReader(
+                                    reader, query.getCoordinateSystem());
                 } catch (SchemaException e) {
                     LOGGER.warning(e.toString());
                     reader = tmp;
@@ -345,7 +352,7 @@ class WFSFeatureSource extends ContentFeatureSource {
                     reader = tmp;
                 }
             }
-        } 
+        }
         return reader;
     }
 
@@ -401,15 +408,16 @@ class WFSFeatureSource extends ContentFeatureSource {
      * Returns the feature type that shall result of issueing the given request, adapting the
      * original feature type for the request's type name in terms of the query CRS and requested
      * attributes.
-     * 
+     *
      * @param query
      * @return
      * @throws IOException
      */
-    SimpleFeatureType getQueryType(final Query query, SimpleFeatureType featureType) throws IOException {
+    SimpleFeatureType getQueryType(final Query query, SimpleFeatureType featureType)
+            throws IOException {
 
-        final CoordinateReferenceSystem coordinateSystemReproject = query
-                .getCoordinateSystemReproject();
+        final CoordinateReferenceSystem coordinateSystemReproject =
+                query.getCoordinateSystemReproject();
 
         String[] propertyNames = query.getPropertyNames();
 
@@ -426,8 +434,9 @@ class WFSFeatureSource extends ContentFeatureSource {
 
         if (coordinateSystemReproject != null) {
             try {
-                queryType = DataUtilities.createSubType(queryType, propertyNames,
-                        coordinateSystemReproject);
+                queryType =
+                        DataUtilities.createSubType(
+                                queryType, propertyNames, coordinateSystemReproject);
             } catch (SchemaException e) {
                 throw new DataSourceException(e);
             }
@@ -435,7 +444,7 @@ class WFSFeatureSource extends ContentFeatureSource {
 
         return queryType;
     }
-    
+
     @Override
     public ResourceInfo getInfo() {
         try {
@@ -445,5 +454,4 @@ class WFSFeatureSource extends ContentFeatureSource {
             return super.getInfo();
         }
     }
-
 }

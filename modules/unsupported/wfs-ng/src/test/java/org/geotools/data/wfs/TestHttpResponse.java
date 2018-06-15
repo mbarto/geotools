@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Map;
-
 import org.geotools.data.ows.HTTPResponse;
 
 public class TestHttpResponse implements HTTPResponse {
@@ -51,8 +50,12 @@ public class TestHttpResponse implements HTTPResponse {
     public TestHttpResponse(String contentType, String charset, InputStream contentInputStream) {
         this(contentType, charset, contentInputStream, null);
     }
-    
-    public TestHttpResponse(String contentType, String charset, InputStream contentInputStream, Map<String, String> replacements) {
+
+    public TestHttpResponse(
+            String contentType,
+            String charset,
+            InputStream contentInputStream,
+            Map<String, String> replacements) {
         this.contentType = contentType;
         this.charset = charset;
         BufferedReader reader = new BufferedReader(new InputStreamReader(contentInputStream));
@@ -68,6 +71,7 @@ public class TestHttpResponse implements HTTPResponse {
         }
         this.bodyContent = sb.toString();
     }
+
     private Object handleReplacements(String line, Map<String, String> replacements) {
         if (replacements != null) {
             for (String key : replacements.keySet()) {
@@ -78,12 +82,11 @@ public class TestHttpResponse implements HTTPResponse {
     }
 
     public TestHttpResponse(URL response, String contentType) {
-         this(contentType, "UTF-8", response);
+        this(contentType, "UTF-8", response);
     }
 
     @Override
-    public void dispose() {
-    }
+    public void dispose() {}
 
     @Override
     public String getContentType() {
