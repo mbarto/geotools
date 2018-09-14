@@ -28,7 +28,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 /** @source $URL$ */
 public class GeoJSON {
     static GeometryJSON gjson = new GeometryJSON();
-    static FeatureJSON fjson = new FeatureJSON();
+    static FeatureJSON fjson = new FeatureJSON("feature");
 
     public static Object read(Object input) throws IOException {
         throw new UnsupportedOperationException();

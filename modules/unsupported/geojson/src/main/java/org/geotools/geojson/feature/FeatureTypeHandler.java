@@ -26,10 +26,12 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geojson.DelegatingHandler;
 import org.geotools.geojson.IContentHandler;
 import org.json.simple.parser.ParseException;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -99,7 +101,7 @@ public class FeatureTypeHandler extends DelegatingHandler<SimpleFeatureType>
          * list and obtain the geometry attribute descriptor
          */
         if (delegate == UNINITIALIZED) {
-            delegate = new FeatureHandler(null, new DefaultAttributeIO());
+            delegate = new FeatureHandler(null, "feature", new DefaultAttributeIO());
             return true;
         }
 
@@ -112,14 +114,12 @@ public class FeatureTypeHandler extends DelegatingHandler<SimpleFeatureType>
 
         if (delegate instanceof FeatureHandler) {
             // obtain a type from the first feature
-            SimpleFeature feature = ((FeatureHandler) delegate).getValue();
+            Feature feature = ((FeatureHandler) delegate).getValue();
             if (feature != null) {
-                geom = feature.getFeatureType().getGeometryDescriptor();
-                List<AttributeDescriptor> attributeDescriptors =
-                        feature.getFeatureType().getAttributeDescriptors();
-                for (AttributeDescriptor ad : attributeDescriptors) {
+                geom = feature.getType().getGeometryDescriptor();
+                for (PropertyDescriptor ad : feature.getType().getDescriptors()) {
                     if (!ad.equals(geom)) {
-                        propertyTypes.put(ad.getLocalName(), ad.getType().getBinding());
+                        propertyTypes.put(ad.getName().getLocalPart(), ad.getType().getBinding());
                     }
                 }
                 delegate = NULL;

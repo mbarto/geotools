@@ -10,13 +10,14 @@ import java.util.Date;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 /** @source $URL$ */
 public class FeatureJSONExtendedTest extends GeoJSONTestSupport {
 
-    FeatureJSON fjson = new FeatureJSON();
+    FeatureJSON fjson = new FeatureJSON("feature");
     SimpleFeatureType featureType;
     SimpleFeatureBuilder fb;
 
@@ -47,14 +48,14 @@ public class FeatureJSONExtendedTest extends GeoJSONTestSupport {
     }
 
     public void testFeatureRead() throws Exception {
-        SimpleFeature f1 = feature(1);
-        SimpleFeature f2 = fjson.readFeature(reader(strip(featureText(1))));
+        Feature f1 = feature(1);
+        Feature f2 = fjson.readFeature(reader(strip(featureText(1))));
         assertEqualsLax(f1, f2);
     }
 
     public void testFeatureReadMismatched() throws Exception {
-        SimpleFeature f1 = feature(1, true);
-        SimpleFeature f2 = fjson.readFeature(reader(strip(featureText(1, true))));
+        Feature f1 = feature(1, true);
+        Feature f2 = fjson.readFeature(reader(strip(featureText(1, true))));
         assertEqualsLax(f1, f2);
     }
 

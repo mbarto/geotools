@@ -12,6 +12,7 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geojson.feature.FeatureJSON;
 import org.geotools.geojson.geom.GeometryJSON;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 /** @source $URL$ */
@@ -29,8 +30,8 @@ public class Benchmark {
 
     static void benchmarkFeatureCollectionParse(File source) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(source));
-        FeatureJSON fjson = new FeatureJSON();
-        FeatureIterator<SimpleFeature> it = fjson.streamFeatureCollection(reader);
+        FeatureJSON fjson = new FeatureJSON("feature");
+        FeatureIterator<Feature> it = fjson.streamFeatureCollection(reader);
         int count = 0;
 
         long t1 = System.currentTimeMillis();

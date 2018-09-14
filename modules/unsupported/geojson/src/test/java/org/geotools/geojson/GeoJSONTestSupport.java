@@ -20,6 +20,9 @@ import com.vividsolutions.jts.geom.Geometry;
 import java.io.IOException;
 import java.io.StringReader;
 import junit.framework.TestCase;
+
+import org.opengis.feature.Feature;
+import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 
 /** @source $URL$ */
@@ -43,13 +46,13 @@ public class GeoJSONTestSupport extends TestCase {
         return sb.toString();
     }
 
-    protected void assertEqualsLax(SimpleFeature f1, SimpleFeature f2) {
-        assertEquals(f1.getID(), f1.getID());
-        assertEquals(f1.getAttributeCount(), f2.getAttributeCount());
+    protected void assertEqualsLax(Feature f1, Feature f2) {
+        assertEquals(f1.getIdentifier().getID(), f2.getIdentifier().getID());
+        assertEquals(f1.getProperties().size(), f2.getProperties().size());
 
-        for (int i = 0; i < f1.getAttributeCount(); i++) {
-            Object o1 = f1.getAttribute(i);
-            Object o2 = f2.getAttribute(i);
+        for (Property p : f1.getProperties()) {
+            Object o1 = p.getValue();
+            Object o2 = f2.getProperty(p.getName()).getValue();
 
             if (o1 instanceof Geometry) {
                 assertTrue(((Geometry) o1).equals((Geometry) o2));

@@ -19,34 +19,40 @@ package org.geotools.geojson.feature;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.geotools.feature.ComplexFeatureBuilder;
+import org.geotools.feature.FeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geojson.DelegatingHandler;
 import org.json.simple.parser.ParseException;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /** @source $URL$ */
-public class FeatureCollectionHandler extends DelegatingHandler<SimpleFeature>
+public class FeatureCollectionHandler extends DelegatingHandler<Feature>
         implements IFeatureCollectionHandler {
 
-    SimpleFeatureBuilder builder;
+    FeatureBuilder builder;
     AttributeIO attio;
+    String featureName;
 
-    SimpleFeature feature;
+    Feature feature;
     CoordinateReferenceSystem crs;
     List stack;
 
     public FeatureCollectionHandler() {
-        this(null, null);
+        this(null, "feature", null);
     }
 
-    public FeatureCollectionHandler(SimpleFeatureType featureType, AttributeIO attio) {
+    public FeatureCollectionHandler(FeatureType featureType, String featureName, AttributeIO attio) {
         if (featureType != null) {
-            builder = new SimpleFeatureBuilder(featureType);
+            builder = new ComplexFeatureBuilder(featureType);
         }
-
+        this.featureName = featureName;
         if (attio == null) {
             if (featureType != null) {
                 attio = new FeatureTypeAttributeIO(featureType);
@@ -75,7 +81,7 @@ public class FeatureCollectionHandler extends DelegatingHandler<SimpleFeature>
     @Override
     public boolean startArray() throws ParseException, IOException {
         if (delegate == UNINITIALIZED) {
-            delegate = new FeatureHandler(builder, attio);
+            delegate = new FeatureHandler(builder, featureName, attio);
             if (crs != null) {
                 // build might not be initialized yet, since its build for the first feature, if
                 // we have already seen a crs, ensure we set it
@@ -119,12 +125,12 @@ public class FeatureCollectionHandler extends DelegatingHandler<SimpleFeature>
                 // check for a null builder, if it is null set it with the feature type
                 // from this feature
                 if (builder == null) {
-                    SimpleFeatureType featureType = feature.getFeatureType();
-                    if (featureType.getCoordinateReferenceSystem() == null && crs != null) {
+                    FeatureType featureType = feature.getType();
+                    /*if (featureType.getCoordinateReferenceSystem() == null && crs != null) {
                         // retype with a crs
                         featureType = SimpleFeatureTypeBuilder.retype(featureType, crs);
-                    }
-                    builder = new SimpleFeatureBuilder(featureType);
+                    }*/
+                    builder = new ComplexFeatureBuilder(featureType);
                 }
 
                 ((FeatureHandler) delegate).init();
@@ -157,7 +163,7 @@ public class FeatureCollectionHandler extends DelegatingHandler<SimpleFeature>
     }
 
     @Override
-    public SimpleFeature getValue() {
+    public Feature getValue() {
         return feature;
     }
 }

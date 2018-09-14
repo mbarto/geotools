@@ -4,24 +4,25 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+
 import org.geotools.geojson.GeoJSONUtil;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.PropertyDescriptor;
 
 /** @source $URL$ */
 public class FeatureTypeAttributeIO implements AttributeIO {
 
     HashMap<String, AttributeIO> ios = new HashMap();
 
-    public FeatureTypeAttributeIO(SimpleFeatureType featureType) {
-        for (AttributeDescriptor ad : featureType.getAttributeDescriptors()) {
+    public FeatureTypeAttributeIO(FeatureType featureType) {
+        for (PropertyDescriptor ad : featureType.getDescriptors()) {
             AttributeIO io = null;
             if (Date.class.isAssignableFrom(ad.getType().getBinding())) {
                 io = new DateAttributeIO();
             } else {
                 io = new DefaultAttributeIO();
             }
-            ios.put(ad.getLocalName(), io);
+            ios.put(ad.getName().getLocalPart(), io);
         }
     }
 
