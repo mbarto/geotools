@@ -2189,28 +2189,22 @@
     </repository>
     -->
     <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
       <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>http://download.osgeo.org/webdav/geotools/</url>
+      <name>OSGeo Nexus Release Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
+      <!-- contains release (including third-party-dependences)                            -->
+      <!-- ucar (https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases) -->
+      <!-- geosolutions (http://maven.geo-solutions.it/)                                   -->
+      <snapshots><enabled>false</enabled></snapshots>
+      <releases><enabled>true</enabled></releases>
     </repository>
 
     <repository>
-      <!-- contains snapshot and release (including third-party-dependences)               -->
-      <!-- Restlet maven Repository (http://maven.restlet.org)                             -->
-      <!-- ucar (https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases) -->
-      <!-- geosolutions (http://maven.geo-solutions.it/)                                   -->
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <id>boundless</id>
-      <name>Boundless Maven Repository</name>
-      <url>https://repo.boundlessgeo.com/main/</url>
+      <id>osgeo-snapshot</id>
+      <name>OSGeo Nexus Snapshot Repository</name>
+      <url>https://repo.osgeo.org/repository/snapshot/</url>
+      <snapshots><enabled>true</enabled></snapshots>
+      <releases><enabled>false</enabled></releases>
     </repository>
 
   </repositories>
