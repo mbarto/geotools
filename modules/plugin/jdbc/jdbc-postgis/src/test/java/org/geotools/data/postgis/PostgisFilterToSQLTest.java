@@ -156,28 +156,12 @@ public class PostgisFilterToSQLTest extends SQLFilterTestSupport {
     }
 
     @Test
-    public void testIsLike() throws Exception {
-        filterToSql.setFeatureType(testSchema);
-        PropertyIsLike like =
-                ff.like(
-                        ff.function("strToLowerCase", ff.property("testString")),
-                        "a_literal",
-                        "%",
-                        "-",
-                        "\\",
-                        true);
 
-        filterToSql.encode(like);
-        String sql = writer.toString().toLowerCase().trim();
-        assertEquals("where lower(teststring) like 'a_literal'", sql);
-    }
-
-    @Test
-    public void testEncodeArrayAnyMatchCapabilities() throws Exception {
+    public void testEncodeInArrayCapabilities() throws Exception {
         filterToSql.setFeatureType(testSchema);
         PropertyIsEqualTo expr =
                 ff.equals(
-                        ff.function("arrayAnyMatch", ff.property("testArray"), ff.literal(5)),
+                        ff.function("inArray", ff.literal(5), ff.property("testArray")),
                         ff.literal(true));
 
         FilterCapabilities caps = filterToSql.getCapabilities();
@@ -194,14 +178,28 @@ public class PostgisFilterToSQLTest extends SQLFilterTestSupport {
     }
 
     @Test
-    public void testEncodeArrayAnyMatch() throws Exception {
+    public void testEncodeInArray() throws Exception {
+        filterToSql.setFeatureType(testSchema);
         PropertyIsEqualTo expr =
                 ff.equals(
-                        ff.function("arrayAnyMatch", ff.property("testArray"), ff.literal(5)),
+                        ff.function("inArray", ff.literal("5"), ff.property("testArray")),
                         ff.literal(true));
 
         filterToSql.encode(expr);
         String sql = writer.toString().toLowerCase();
         assertEquals("where 5=any(testarray)", sql);
+    }
+
+    @Test
+    public void testEncodeInArrayWithCast() throws Exception {
+        filterToSql.setFeatureType(testSchema);
+        PropertyIsEqualTo expr =
+                ff.equals(
+                        ff.function("inArray", ff.literal(5), ff.property("testArray")),
+                        ff.literal(true));
+
+        filterToSql.encode(expr);
+        String sql = writer.toString().toLowerCase();
+        assertEquals("where 5::text=any(testarray)", sql);
     }
 }
