@@ -33,7 +33,7 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.FilterCapabilities;
 import org.geotools.filter.function.DateDifferenceFunction;
 import org.geotools.filter.function.FilterFunction_area;
-import org.geotools.filter.function.FilterFunction_arrayAnyMatch;
+import org.geotools.filter.function.FilterFunction_equalTo;
 import org.geotools.filter.function.FilterFunction_strConcat;
 import org.geotools.filter.function.FilterFunction_strEndsWith;
 import org.geotools.filter.function.FilterFunction_strEqualsIgnoreCase;
@@ -47,6 +47,7 @@ import org.geotools.filter.function.FilterFunction_strToLowerCase;
 import org.geotools.filter.function.FilterFunction_strToUpperCase;
 import org.geotools.filter.function.FilterFunction_strTrim;
 import org.geotools.filter.function.FilterFunction_strTrim2;
+import org.geotools.filter.function.InArrayFunction;
 import org.geotools.filter.function.math.FilterFunction_abs;
 import org.geotools.filter.function.math.FilterFunction_abs_2;
 import org.geotools.filter.function.math.FilterFunction_abs_3;
@@ -69,6 +70,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.MultiValuedFilter;
+import org.opengis.filter.MultiValuedFilter.MatchAction;
 import org.opengis.filter.NativeFilter;
 import org.opengis.filter.PropertyIsBetween;
 import org.opengis.filter.PropertyIsEqualTo;
@@ -181,7 +183,10 @@ class FilterToSqlHelper {
             caps.addType(FilterFunction_pgNearest.class);
 
             // array functions
-            caps.addType(FilterFunction_arrayAnyMatch.class);
+            caps.addType(InArrayFunction.class);
+
+            // compare functions
+            caps.addType(FilterFunction_equalTo.class);
         }
 
         // native filter support
@@ -705,6 +710,10 @@ class FilterToSqlHelper {
         return clazz != null && clazz.isArray();
     }
 
+    boolean isArrayType(Expression exp) {
+        return isArray(exp) || delegate.getExpressionType(exp).isArray();
+    }
+
     void visitArrayComparison(
             BinaryComparisonOperator filter,
             Expression left,
@@ -932,11 +941,18 @@ class FilterToSqlHelper {
         return sb.toString();
     }
 
-    public Object visit(FilterFunction_arrayAnyMatch filter, Object extraData) {
-        Expression array = getParameter(filter, 0, true);
-        Expression candidate = getParameter(filter, 1, true);
+    public Object visit(InArrayFunction filter, Object extraData) {
+        Expression candidate = getParameter(filter, 0, true);
+        Expression array = getParameter(filter, 1, true);
+        Class<?> arrayType = getBaseType(array);
+        Class<?> candidateType = getBaseType(candidate);
+        String castToArrayType = "";
+        if (arrayType != null && (candidateType == null || !candidateType.equals(arrayType))) {
+            castToArrayType = cast("", arrayType);
+        }
         try {
             candidate.accept(delegate, extraData);
+            out.write(castToArrayType);
             out.write("=any(");
             array.accept(delegate, extraData);
             out.write(")");
@@ -944,6 +960,43 @@ class FilterToSqlHelper {
             throw new RuntimeException(e);
         }
         return extraData;
+    }
+
+    public Object visit(FilterFunction_equalTo filter, Object extraData) {
+        Expression left = getParameter(filter, 0, true);
+        Expression right = getParameter(filter, 1, true);
+        Expression type = getParameter(filter, 2, true);
+        String matchType = (String) type.evaluate(null);
+        PropertyIsEqualTo equal =
+                CommonFactoryFinder.getFilterFactory(null)
+                        .equal(left, right, false, MatchAction.valueOf(matchType));
+        if (isArrayType(left) && isArrayType(right) && matchType.equalsIgnoreCase("ANY")) {
+            visitArrayComparison(
+                    CommonFactoryFinder.getFilterFactory(null)
+                            .equal(left, right, false, MatchAction.valueOf(matchType)),
+                    left,
+                    right,
+                    null,
+                    null,
+                    "&&");
+        } else {
+            equal.accept(delegate, extraData);
+        }
+        return extraData;
+    }
+
+    private Class<?> getBaseType(Expression expr) {
+        Class<?> type = delegate.getExpressionType(expr);
+        if (type == null && expr instanceof Literal) {
+            Object value = delegate.evaluateLiteral((Literal) expr, Object.class);
+            if (value != null) {
+                type = value.getClass();
+            }
+        }
+        if (isArray(type)) {
+            type = type.getComponentType();
+        }
+        return type;
     }
 
     public Object visit(
@@ -1025,19 +1078,38 @@ class FilterToSqlHelper {
     }
 
     /**
-     * Detects and return a FilterFunction_arrayAnyMatch if found, otherwise null
+     * Detects and return a InArrayFunction if found, otherwise null
      *
      * @param filter filter to evaluate
      * @return FilterFunction_any if found
      */
-    public FilterFunction_arrayAnyMatch getArrayAnyMatch(PropertyIsEqualTo filter) {
+    public InArrayFunction getInArray(PropertyIsEqualTo filter) {
         Expression expr1 = filter.getExpression1();
         Expression expr2 = filter.getExpression2();
-        if (expr2 instanceof FilterFunction_arrayAnyMatch) {
-            return (FilterFunction_arrayAnyMatch) expr2;
+        if (expr2 instanceof InArrayFunction) {
+            return (InArrayFunction) expr2;
         }
-        if (expr1 instanceof FilterFunction_arrayAnyMatch) {
-            return (FilterFunction_arrayAnyMatch) expr1;
+        if (expr1 instanceof InArrayFunction) {
+            return (InArrayFunction) expr1;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Detects and return an equalTo function if found, otherwise null
+     *
+     * @param filter filter to evaluate
+     * @return FilterFunction_equalTo if found
+     */
+    public FilterFunction_equalTo getEqualTo(PropertyIsEqualTo filter) {
+        Expression expr1 = filter.getExpression1();
+        Expression expr2 = filter.getExpression2();
+        if (expr2 instanceof FilterFunction_equalTo) {
+            return (FilterFunction_equalTo) expr2;
+        }
+        if (expr1 instanceof FilterFunction_equalTo) {
+            return (FilterFunction_equalTo) expr1;
         } else {
             return null;
         }
@@ -1085,5 +1157,31 @@ class FilterToSqlHelper {
     public Integer getFeatureTypeGeometryDimension() {
         GeometryDescriptor descriptor = delegate.getFeatureType().getGeometryDescriptor();
         return (Integer) descriptor.getUserData().get(Hints.COORDINATE_DIMENSION);
+    }
+
+    public boolean isSupportedEqualFunction(PropertyIsEqualTo filter) {
+        FilterFunction_pgNearest nearest = getNearestFilter(filter);
+        InArrayFunction inArray = getInArray(filter);
+        FilterFunction_equalTo equalTo = getEqualTo(filter);
+        return nearest != null || inArray != null || equalTo != null;
+    }
+
+    public Object visitSupportedEqualFunction(
+            PropertyIsEqualTo filter,
+            SQLDialect dialect,
+            BiConsumer<Geometry, StringBuffer> encodeGeometryValue,
+            Object extraData) {
+        FilterFunction_pgNearest nearest = getNearestFilter(filter);
+        InArrayFunction inArray = getInArray(filter);
+        FilterFunction_equalTo equalTo = getEqualTo(filter);
+        if (nearest != null) {
+            return visit(
+                    nearest, extraData, new NearestHelperContext(dialect, encodeGeometryValue));
+        } else if (inArray != null) {
+            return visit(inArray, extraData);
+        } else if (equalTo != null) {
+            return visit(equalTo, extraData);
+        }
+        return null;
     }
 }
